@@ -232,21 +232,10 @@ html body .login-input { color:var(--text-primary); background:var(--el-fill-col
   html body .app-layout .stats-grid { grid-template-columns:1fr; }
 }
 /* Consistent dark glass, rather than isolated dark patches from old components. */
-@media(prefers-color-scheme:dark) {
-  :root { color-scheme:dark; --text-primary:#e6eef8; --text-secondary:#a2b3c7; --glass-panel:rgba(29,44,64,.88); --glass-card:rgba(31,48,69,.78); --glass-border:rgba(186,211,242,.13); --glass-separator:rgba(174,200,232,.13); --inset-surface:rgba(153,187,224,.08); --hover-surface:rgba(160,194,233,.12); --accent-soft:rgba(94,167,255,.16); --glass-shadow:0 12px 40px -20px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.06); --el-color-primary:#70b4ff; --el-text-color-regular:#bfd0e3; --el-border-color:rgba(175,199,232,.23); --el-border-color-light:rgba(175,199,232,.14); --el-fill-color-blank:rgba(34,52,75,.85); --el-bg-color:#1b2a3d; --el-bg-color-overlay:#233750; --el-fill-color-light:rgba(149,185,229,.10); --el-fill-color-lighter:rgba(149,185,229,.06); }
-  html { background:#122033; }
-  html body { background:radial-gradient(ellipse at 0% 0%,#243c58,transparent 55%),radial-gradient(ellipse at 100% 100%,#1a3b43,transparent 55%),#142237; }
-  body .el-button--primary:not(.is-text):not(.is-plain) { color:#102a47; }
-  html body .app-layout .desktop-table { --el-table-header-bg-color:rgba(25,43,64,.5); }
-  html body .app-layout .desktop-table .el-table__row--striped td.el-table__cell,html body .app-layout .task-card,html body .app-layout .dashboard .el-card,html body .app-layout .settings-content .el-card { background:rgba(180,210,245,.035); }
-  html body .app-layout .user-card.current-user { background:rgba(46,110,185,.14); }
-  body .el-tag--success { color:#7de2aa; } body .el-tag--warning { color:#ebc16e; } body .el-tag--danger { color:#ff969f; }
-  html body .app-layout :is(.task-name,.user-card .username,.section-title,.action-content h3,.info-value),body .el-dialog :is(.info-item .value,.current-message) { color:var(--text-primary); }
-  body .el-dialog .el-alert { background:var(--inset-surface); }
-}
+
 @supports not (backdrop-filter:blur(1px)) {
   :root { --glass-panel:#f6f9fd; --glass-card:#f6f9fd; }
-  @media(prefers-color-scheme:dark) { :root { --glass-panel:#1d2c40; --glass-card:#1f3045; } }
+  
 }
 @media(prefers-reduced-transparency:reduce) {
   :root { --glass-panel:#f6f9fd; --glass-card:#f6f9fd; }
@@ -295,9 +284,7 @@ html body .add-task-dialog .form-help { color:var(--text-secondary); }
 }
 html body .app-layout .content-row .value { min-width:0; overflow-wrap:anywhere; white-space:normal; }
 html body .app-layout .task-card .task-name .source-link { white-space:normal; overflow-wrap:anywhere; }
-@media(prefers-reduced-transparency:reduce) and (prefers-color-scheme:dark) {
-  :root { --glass-panel:#1d2c40; --glass-card:#1f3045; }
-}
+
 body .el-message-fade-enter-active,body .el-message-fade-leave-active { transition:opacity .18s ease,transform .26s var(--ios-spring); }
 html body .app-layout .users-list { box-shadow:none; border:0; border-radius:22px; }
 html body .app-layout .user-grid { padding:0; }

@@ -6,18 +6,15 @@
   </section>
 </template>
 <script setup lang="ts">
-import {computed,ref,watch,onMounted,onUnmounted} from 'vue'
+import {computed,ref,watch} from 'vue'
 import {useRoute,useRouter} from 'vue-router'
 import {mediaPages,validMediaPage} from '@/config/mediaPages'
 const route=useRoute(), router=useRouter(), frame=ref<HTMLIFrameElement>(),ready=ref(false)
 const selected=computed({get:()=>validMediaPage(route.query.page),set:page=>router.replace({path:'/media',query:{page}})})
 const initialSource=ref('/media-engine/?next='+selected.value)
 watch(selected,page=>{if(ready.value)frame.value?.contentWindow?.postMessage({type:'film-hub:navigate',page},location.origin);else initialSource.value='/media-engine/?next='+page})
-const appearance=window.matchMedia('(prefers-color-scheme: dark)')
-const syncTheme=()=>frame.value?.contentWindow?.postMessage({type:'film-hub:theme',dark:appearance.matches},location.origin)
+const syncTheme=()=>frame.value?.contentWindow?.postMessage({type:'film-hub:theme',dark:false},location.origin)
 const onFrameLoad=()=>{ready.value=true;syncTheme()}
-onMounted(()=>appearance.addEventListener('change',syncTheme))
-onUnmounted(()=>appearance.removeEventListener('change',syncTheme))
 const reload=()=>{ready.value=false;initialSource.value='/media-engine/?next='+selected.value+'&reload='+Date.now()}
 </script>
 <style scoped>

@@ -1,6 +1,6 @@
 {
   "project": "Film Index Hub",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "platform": "linux/amd64",
   "pan_base": "dandan658/baidu-autosave-docker v1.7.0",
   "media_base": "dandan658/film-and-television-index v1.2.0",

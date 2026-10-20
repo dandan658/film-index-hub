@@ -50,7 +50,7 @@ jobs:
         run: |
           set -euo pipefail
           for image in film-index-hub film-index-hub-pan film-index-hub-media; do
-            docker tag "ghcr.io/dandan658/$image:latest" "ghcr.io/dandan658/$image:2.0.0"
-            docker push "ghcr.io/dandan658/$image:2.0.0"
+            docker tag "ghcr.io/dandan658/$image:latest" "ghcr.io/dandan658/$image:2.0.1"
+            docker push "ghcr.io/dandan658/$image:2.0.1"
             docker push "ghcr.io/dandan658/$image:latest"
           done

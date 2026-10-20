@@ -8,7 +8,7 @@ RUN chmod +x /nas-tools/docker/entrypoint.sh /nas-tools/film-entrypoint.sh \
     && python3 -m compileall -q app web run.py media_profile.py \
     && python3 scripts/create_source_archive.py /nas-tools /opt/film-index-source.zip
 LABEL org.opencontainers.image.title="Film and Television Index" \
-      org.opencontainers.image.version="2.0.0" \
+      org.opencontainers.image.version="2.0.1" \
       org.opencontainers.image.licenses="AGPL-3.0-only" \
       org.opencontainers.image.description="Local media-organization edition based on NAStools v2.9.1"
 EXPOSE 3000

@@ -1,26 +1,31 @@
 {
-  "version": "2.0.0",
-  "local_identity_tests": 5,
-  "local_media_tests": 13,
-  "frontend_build": "passed",
-  "frontend_typecheck": "passed",
-  "real_stack": "passed",
-  "actual_nas_data_operations": "not run",
-  "tested_revision": "e9113ff949525a77f929cc603cda965693b265dc",
-  "actions_url": "https://github.com/dandan658/film-index-hub/actions/runs/39387604322",
-  "baidu_regression_tests": 67,
-  "media_pages_checked": 12,
-  "restart_session_persistence": "passed",
-  "secondary_original_account": "passed",
-  "logout_revokes_media_access": "passed",
-  "resource_sample_mib": {
-    "gateway": 3.523,
-    "media": 93.17,
-    "pan": 41.84,
-    "total": 138.533
+  "version": "2.0.1",
+  "appearance": "white translucent glass, fixed light",
+  "previous_release_evidence": {
+    "version": "2.0.0",
+    "local_identity_tests": 5,
+    "local_media_tests": 13,
+    "frontend_build": "passed",
+    "frontend_typecheck": "passed",
+    "real_stack": "passed",
+    "actual_nas_data_operations": "not run",
+    "tested_revision": "e9113ff949525a77f929cc603cda965693b265dc",
+    "actions_url": "https://github.com/dandan658/film-index-hub/actions/runs/39387604322",
+    "baidu_regression_tests": 67,
+    "media_pages_checked": 12,
+    "restart_session_persistence": "passed",
+    "secondary_original_account": "passed",
+    "logout_revokes_media_access": "passed",
+    "resource_sample_mib": {
+      "gateway": 3.523,
+      "media": 93.17,
+      "pan": 41.84,
+      "total": 138.533
+    },
+    "resource_sample_context": "GitHub Actions, fresh CI config after HTTP and restart tests; not real NAS measurement",
+    "media_processes": [
+      "python3 hub_server.py"
+    ]
   },
-  "resource_sample_context": "GitHub Actions, fresh CI config after HTTP and restart tests; not real NAS measurement",
-  "media_processes": [
-    "python3 hub_server.py"
-  ]
+  "real_stack": "pending updated image verification"
 }
