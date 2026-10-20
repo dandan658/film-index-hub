@@ -27,7 +27,7 @@
         <el-menu
           :default-active="activeRoute"
           :collapse="isCollapsed"
-          :unique-opened="false"
+          :unique-opened="true"
           class="sidebar-menu"
           @select="handleMenuSelect"
         >
@@ -68,7 +68,10 @@
             <template #title>系统设置</template>
           </el-menu-item>
           <el-sub-menu index="media-workspace"><template #title><el-icon><List /></el-icon><span>媒体整理</span></template>
-            <el-menu-item v-for="item in mediaPages" :key="item.page" :index="'/media?page='+item.page"><span>{{ item.label }}</span></el-menu-item>
+            <el-menu-item v-for="item in mediaPages.slice(0,5)" :key="item.page" :index="'/media?page='+item.page"><span>{{ item.label }}</span></el-menu-item>
+          </el-sub-menu>
+          <el-sub-menu index="media-settings"><template #title><el-icon><Setting /></el-icon><span>媒体设置</span></template>
+            <el-menu-item v-for="item in mediaPages.slice(5)" :key="item.page" :index="'/media?page='+item.page"><span>{{ item.label }}</span></el-menu-item>
           </el-sub-menu>
         </el-menu>
       </nav>
@@ -76,7 +79,7 @@
       <!-- 侧边栏底部 -->
       <div class="sidebar-footer">
         <!-- 系统状态 -->
-        <div v-if="!isCollapsed" class="system-status">
+        <div v-if="!isCollapsed && route.path !== '/media'" class="system-status">
           <div class="status-item">
             <span class="status-label">轮询状态</span>
             <el-tag
@@ -110,7 +113,7 @@
         </div>
         
         <!-- 快捷操作 -->
-        <div class="quick-actions">
+        <div v-if="route.path !== '/media'" class="quick-actions">
           <el-tooltip content="添加任务" :disabled="!isCollapsed">
             <el-button
               type="primary"
@@ -255,4 +258,6 @@ onUnmounted(() => window.removeEventListener('resize', handleResize))
 .collapsed .sidebar-footer { padding:12px 8px; }
 .collapsed-btn { padding:0; width:44px!important; margin:auto; display:flex; }
 @media(max-width:767px) { .app-sidebar { display:none; } }
+
+.sidebar-menu :deep(.el-sub-menu .el-menu-item){height:36px;line-height:36px;font-size:13px}.sidebar-menu :deep(.el-sub-menu__title){height:44px;line-height:44px}
 </style>
