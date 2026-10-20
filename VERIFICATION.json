@@ -1,0 +1,48 @@
+{
+  "version": "3.0.0",
+  "tested_revision": "fbf9ce76d83cd765374a8fd2df5911047aebe31b",
+  "actions_url": "https://github.com/dandan658/film-index-hub/actions/runs/39399957763",
+  "real_linux_container_tests": "passed",
+  "subscription_regression_tests": 67,
+  "parallel_database_requests": 24,
+  "parallel_workers": 8,
+  "same_flask_application_and_pid_for_both_features": true,
+  "running_containers": 1,
+  "server_processes": [
+    "python -m film_index"
+  ],
+  "original_primary_and_additional_accounts": "passed",
+  "session_persistence_and_logout_revocation": "passed",
+  "preserved_legacy_data": [
+    "task_uid",
+    "transfer_memory_after_file_move",
+    "media_history_with_old_column_names",
+    "media_tmdb_configuration",
+    "legacy_enum_tmdb_cache",
+    "directory_sync_configuration"
+  ],
+  "idle_resource_sample": {
+    "memory_mib": 105.7,
+    "cpu_percent": 0.01,
+    "environment": "GitHub Actions, synthetic legacy data after migration and restart; not the user NAS"
+  },
+  "nas_data_operations": "not performed",
+  "gateway": false,
+  "legacy_image_dependency": false,
+  "published_image": {
+    "image": "ghcr.io/dandan658/film-index-hub:latest",
+    "anonymous_access": true,
+    "platforms": [
+      "linux/amd64"
+    ],
+    "digest": "sha256:062d30099a8cc1b2e19959c16a0ccf5511d5a2b75549b217180f926a3da0c0e8"
+  },
+  "image_command": [
+    "python",
+    "-m",
+    "film_index"
+  ],
+  "image_exposed_ports": [
+    "5000/tcp"
+  ]
+}

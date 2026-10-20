@@ -8,6 +8,7 @@
   "README.md",
   "SOURCE_FILES.json",
   "UPSTREAM.json",
+  "VERIFICATION.json",
   "compose.yaml",
   "film_index/__init__.py",
   "film_index/__main__.py",

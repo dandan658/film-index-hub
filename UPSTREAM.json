@@ -5,10 +5,29 @@
   "repository": "https://github.com/dandan658/film-index-hub",
   "base_image": "python:3.10-slim-bookworm",
   "source_origins": [
-    {"project": "baidu-autosave", "url": "https://github.com/dandan658/baidu-autosave-docker", "release": "1.7.0"},
-    {"project": "Film and Television Index", "url": "https://github.com/dandan658/film-and-television-index", "release": "1.2.0"},
-    {"project": "nas-tools-v2.9.1", "url": "https://github.com/NewBeesX/nas-tools-v2.9.1", "commit": "e3a43d4f0896db49de02e9a9201ef2e5877af56f"}
+    {
+      "project": "baidu-autosave",
+      "url": "https://github.com/dandan658/baidu-autosave-docker",
+      "release": "1.7.0"
+    },
+    {
+      "project": "Film and Television Index",
+      "url": "https://github.com/dandan658/film-and-television-index",
+      "release": "1.2.0"
+    },
+    {
+      "project": "nas-tools-v2.9.1",
+      "url": "https://github.com/NewBeesX/nas-tools-v2.9.1",
+      "commit": "e3a43d4f0896db49de02e9a9201ef2e5877af56f"
+    }
   ],
   "license": "AGPL-3.0",
-  "runtime_dependency_on_legacy_images": false
+  "runtime_dependency_on_legacy_images": false,
+  "included_tool_sources": [
+    {
+      "name": "MinIO Client",
+      "url": "https://github.com/minio/mc/tree/RELEASE.2025-08-13T08-35-41Z",
+      "binary_sha256": "01f866e9c5f9b87c2b09116fa5d7c06695b106242d829a8bb32990c00312e891"
+    }
+  ]
 }
