@@ -8,29 +8,11 @@
         class="nav-item"
         :class="{ active: isActive(item.path) }"
       >
-        <div class="nav-icon">
-          <el-badge
-            v-if="item.badge && item.badge > 0"
-            :value="item.badge"
-            :max="99"
-            :hidden="false"
-          >
-            <el-icon size="20">
-              <component :is="item.icon" />
-            </el-icon>
-          </el-badge>
-          <el-icon v-else size="20">
-            <component :is="item.icon" />
-          </el-icon>
-        </div>
         <span class="nav-label">{{ item.label }}</span>
       </router-link>
       
       <!-- 添加按钮 -->
       <button type="button" class="nav-item add-btn" @click="showAddTaskDialog" aria-label="添加转存任务">
-        <div class="nav-icon add-icon">
-          <el-icon size="24"><Plus /></el-icon>
-        </div>
         <span class="nav-label">添加</span>
       </button>
     </div>
@@ -41,11 +23,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, type Component } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useTaskStore, useUserStore } from '@/stores'
-import { Plus, Odometer, List, User, Setting } from '@element-plus/icons-vue'
 
 // Props & Emits
 interface Emits {
@@ -67,30 +48,26 @@ const { userStats } = storeToRefs(userStore)
 const navItems = computed(() => [
   {
     path: '/dashboard',
-    icon: Odometer,
     label: '首页',
     badge: 0
   },
   {
     path: '/tasks',
-    icon: List,
     label: '任务',
     badge: taskStats.value.running
   },
   {
     path: '/users',
-    icon: User,
     label: '用户',
     badge: userStats.value.invalid
   },
-  {path:'/media',icon:List,label:'媒体',badge:0},
+  {path:'/media',label:'媒体',badge:0},
   {
     path: '/settings',
-    icon: Setting,
     label: '设置',
     badge: 0
   }
-] satisfies Array<{ path: string; icon: Component; label: string; badge: number }>)
+] satisfies Array<{ path: string; label: string; badge: number }>)
 
 // 方法
 const isActive = (path: string) => {
@@ -111,7 +88,7 @@ const showAddTaskDialog = () => {
 .nav-icon { height:24px; display:flex; align-items:center; justify-content:center; }
 .nav-label { font-size:11px; font-weight:600; }
 .add-icon { width:34px; height:34px; border-radius:12px; background:var(--el-color-primary); color:white; }
-.add-btn .nav-label { display:none; }
+.add-btn { background:var(--el-color-primary);color:white; }.nav-label { font-size:13px; }.nav-item { position:relative; }
 .safe-area-padding { display:none; }
 .nav-icon :deep(.el-badge__content) { height:16px; min-width:16px; padding:0 4px; font-size:10px; line-height:16px; }
 </style>

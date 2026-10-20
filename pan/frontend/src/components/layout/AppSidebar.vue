@@ -26,20 +26,20 @@
       <nav class="sidebar-nav">
         <el-menu
           :default-active="activeRoute"
-          :collapse="isCollapsed"
+          :collapse="false"
           :unique-opened="true"
           class="sidebar-menu"
           @select="handleMenuSelect"
         >
           <!-- 仪表盘 -->
           <el-menu-item index="/dashboard" class="menu-item" aria-label="仪表盘">
-            <el-icon><Odometer /></el-icon>
+            
             <template #title>仪表盘</template>
           </el-menu-item>
           
           <!-- 任务管理 -->
           <el-menu-item index="/tasks" class="menu-item" aria-label="任务管理">
-            <el-icon><List /></el-icon>
+            
             <template #title>
               <span>百度订阅</span>
               <span v-if="taskStats.running > 0" class="menu-count" :aria-label="`${taskStats.running} 个任务运行中`">{{ taskStats.running > 99 ? '99+' : taskStats.running }}</span>
@@ -48,7 +48,7 @@
           
           <!-- 用户管理 -->
           <el-menu-item index="/users" class="menu-item" aria-label="用户管理">
-            <el-icon><User /></el-icon>
+            
             <template #title>
               <span>网盘账号</span>
               <el-tag
@@ -64,13 +64,13 @@
           
           <!-- 系统设置 -->
           <el-menu-item index="/settings" class="menu-item" aria-label="系统设置">
-            <el-icon><Setting /></el-icon>
+            
             <template #title>系统设置</template>
           </el-menu-item>
-          <el-sub-menu index="media-workspace"><template #title><el-icon><List /></el-icon><span>媒体整理</span></template>
+          <el-sub-menu index="media-workspace"><template #title><span>媒体整理</span></template>
             <el-menu-item v-for="item in mediaPages.slice(0,5)" :key="item.page" :index="'/media?page='+item.page"><span>{{ item.label }}</span></el-menu-item>
           </el-sub-menu>
-          <el-sub-menu index="media-settings"><template #title><el-icon><Setting /></el-icon><span>媒体设置</span></template>
+          <el-sub-menu index="media-settings"><template #title><span>媒体设置</span></template>
             <el-menu-item v-for="item in mediaPages.slice(5)" :key="item.page" :index="'/media?page='+item.page"><span>{{ item.label }}</span></el-menu-item>
           </el-sub-menu>
         </el-menu>
@@ -156,7 +156,7 @@ import { useTaskStore, useUserStore, useVersionStore } from '@/stores'
 import { usePolling } from '@/composables/usePolling'
 import { APP_VERSION } from '@/config/version'
 import { appStorage } from '@/utils/storage'
-import { Plus, Odometer, List, User, Setting, Download } from '@element-plus/icons-vue'
+import { Plus, Download } from '@element-plus/icons-vue'
 
 // Props & Emits
 interface Emits {
@@ -259,5 +259,11 @@ onUnmounted(() => window.removeEventListener('resize', handleResize))
 .collapsed-btn { padding:0; width:44px!important; margin:auto; display:flex; }
 @media(max-width:767px) { .app-sidebar { display:none; } }
 
-.sidebar-menu :deep(.el-sub-menu .el-menu-item){height:36px;line-height:36px;font-size:13px}.sidebar-menu :deep(.el-sub-menu__title){color:var(--text-secondary);height:44px;line-height:44px}
+.sidebar-menu :deep(.el-sub-menu .el-menu-item){height:36px;line-height:36px;font-size:13px}.sidebar-menu :deep(.el-sub-menu__title){color:var(--text-secondary);height:44px;line-height:44px;padding:0 14px!important}
+/* Text-only navigation shares one left edge at every level. */
+.sidebar-menu :deep(.el-sub-menu .el-menu){padding:0!important}
+.sidebar-menu :deep(.el-sub-menu__title){border-radius:15px;margin:4px 0}
+.collapsed .sidebar-menu :deep(.el-sub-menu__title){padding:0!important;justify-content:center;font-size:13px}
+.collapsed .sidebar-menu :deep(.el-sub-menu__icon-arrow){display:none}
+.collapsed .sidebar-menu :deep(.el-menu-item){font-size:13px}
 </style>
