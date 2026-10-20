@@ -28,7 +28,7 @@ COPY film_index/ ./film_index/
 COPY --from=frontend /build/dist/ ./film_index/frontend/dist/
 COPY source.zip /opt/film-index/source.zip
 LABEL org.opencontainers.image.title="Film Index" \
-      org.opencontainers.image.version="3.0.0" \
+      org.opencontainers.image.version="3.0.1" \
       org.opencontainers.image.source="https://github.com/dandan658/film-index-hub" \
       org.opencontainers.image.licenses="AGPL-3.0-only"
 EXPOSE 5000

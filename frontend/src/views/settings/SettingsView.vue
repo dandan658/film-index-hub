@@ -6,6 +6,19 @@
 
     <div class="settings-content">
       <el-tabs v-model="activeTab" class="settings-tabs">
+        <el-tab-pane label="备份与恢复" name="backup">
+          <el-card>
+            <h3>完整备份</h3>
+            <p>包含登录账号、订阅任务、转存记忆、媒体配置、数据库及 TMDB 缓存。不包含媒体文件。</p>
+            <p>备份含网盘凭据，请妥善保存。升级前可下载备份，恢复后使用备份中的账号登录。</p>
+            <el-button type="primary" @click="downloadBackup">下载完整备份</el-button>
+            <el-divider />
+            <h3>恢复备份</h3>
+            <p>选择本项目导出的 ZIP，校验通过后重启容器生效。恢复前自动保存当前数据。</p>
+            <input type="file" accept=".zip" aria-label="选择完整备份" @change="selectBackup" />
+            <el-button :disabled="!backupFile" :loading="restoringBackup" @click="restoreBackup">校验并准备恢复</el-button>
+          </el-card>
+        </el-tab-pane>
         <!-- 通知设置 -->
         <el-tab-pane label="通知设置" name="notification">
           <el-card>
@@ -555,8 +568,27 @@
 </template>
 
 <script setup lang="ts">
+const backupFile = ref<File | null>(null)
+const restoringBackup = ref(false)
+const downloadBackup = () => { window.location.href = '/api/system/backup' }
+const selectBackup = (event: Event) => { backupFile.value = (event.target as HTMLInputElement).files?.[0] || null }
+const restoreBackup = async () => {
+  if (!backupFile.value) return
+  try {
+    await ElMessageBox.confirm('重启后将使用备份中的账号、任务与媒体配置。是否准备恢复？', '恢复完整备份', { confirmButtonText: '校验备份', cancelButtonText: '取消' })
+    restoringBackup.value = true
+    const form = new FormData()
+    form.append('file', backupFile.value)
+    const response = await fetch('/api/system/restore', { method: 'POST', headers: { 'X-Film-Index': 'backup' }, body: form })
+    const result = await response.json()
+    if (!response.ok) throw new Error(result.message)
+    await ElMessageBox.alert(result.message, '准备恢复完成', { confirmButtonText: '知道了' })
+  } catch (error: any) { if (error !== 'cancel' && error !== 'close') ElMessage.error(error.message || '备份上传失败') }
+  finally { restoringBackup.value = false }
+}
+
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Delete, User, ArrowDown } from '@element-plus/icons-vue'
 import { storeToRefs } from 'pinia'
 import { useConfigStore, useVersionStore, useAuthStore } from '@/stores'
@@ -575,7 +607,7 @@ const handleVersionCheck = () => {
   versionStore.checkForUpdates() // 检查版本
 }
 
-const activeTab = ref('notification')
+const activeTab = ref(new URLSearchParams(window.location.search).get('tab') === 'backup' ? 'backup' : 'notification')
 
 // 表单数据
 const notificationForm = reactive({

@@ -1,6 +1,6 @@
 {
   "project": "Film Index",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "architecture": "single Flask application, single Python process, single container",
   "repository": "https://github.com/dandan658/film-index-hub",
   "base_image": "python:3.10-slim-bookworm",

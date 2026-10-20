@@ -384,7 +384,18 @@ class WebAction:
         item = data.get('item')
         if item not in commands:
             return {'code': -1, 'msg': '此服务已从媒体整理版移除'}
-        ThreadHelper().start_thread(commands[item], ())
+        def run_sync():
+            log.info('【Sync】目录同步任务开始')
+            MessageCenter().insert_system_message('INFO', '目录同步已开始', '可在目录同步日志中查看进度')
+            try:
+                commands[item]()
+                log.info('【Sync】目录同步任务结束')
+                MessageCenter().insert_system_message('INFO', '目录同步任务结束', '具体文件处理结果请查看目录同步日志')
+            except Exception:
+                log.error('【Sync】目录同步任务异常，请检查配置和后台日志')
+                MessageCenter().insert_system_message('ERROR', '目录同步异常', '请查看目录同步日志和容器日志')
+                raise
+        ThreadHelper().start_thread(run_sync, ())
         return {'retmsg': '服务已经启动', 'item': item}
 
     @staticmethod

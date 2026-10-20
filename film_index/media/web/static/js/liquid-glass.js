@@ -12,3 +12,5 @@
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, {once:true}); else start();
 })();
+
+if (window.jQuery) jQuery(document).on('hidden.bs.modal', '#modal-logging', () => stop_logging());

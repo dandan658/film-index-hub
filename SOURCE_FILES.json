@@ -13,6 +13,7 @@
   "film_index/__init__.py",
   "film_index/__main__.py",
   "film_index/application.py",
+  "film_index/backup.py",
   "film_index/bootstrap.py",
   "film_index/identity.py",
   "film_index/media/__init__.py",
@@ -526,5 +527,6 @@
   "tests/subscriptions/test_storage_media.py",
   "tests/subscriptions/test_task_history.py",
   "tests/subscriptions/test_tmdb.py",
-  "tests/subscriptions/test_web_responsiveness.py"
+  "tests/subscriptions/test_web_responsiveness.py",
+  "tests/test_backup.py"
 ]

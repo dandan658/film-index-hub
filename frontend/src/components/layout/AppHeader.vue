@@ -60,7 +60,7 @@
         </el-dropdown>
         
         <!-- 通知按钮 -->
-        <el-button type="text" class="notification-btn" @click="showNotifications = true">
+        <el-button type="text" class="notification-btn" aria-label="通知中心" @click="showNotifications = true">
           <el-badge :value="unreadCount" :hidden="unreadCount === 0" :max="99">
             <el-icon size="18"><Bell /></el-icon>
           </el-badge>
@@ -77,6 +77,8 @@
       direction="rtl"
       size="320px"
       class="notification-drawer"
+      append-to-body
+      @open="loadNotifications"
     >
       <div class="notification-content">
         <div v-if="notifications.length === 0" class="empty-notifications">
@@ -187,8 +189,18 @@ const getNotificationIcon = (type: string) => {
   return icons[type as keyof typeof icons] || 'Bell'
 }
 
-// 初始化通知数据（模拟）
-// 实际项目中应该从API获取
+const loadNotifications = async () => {
+  try {
+    const response = await fetch('/media-engine/activity', { credentials: 'same-origin' })
+    if (!response.ok) throw new Error('通知读取失败')
+    const data = await response.json()
+    notifications.value = data.messages.map((item: any, index: number) => ({
+      id: index, title: item.title, message: item.content.replace(/<br\s*\/?>/gi, '\n'),
+      time: item.time, type: item.level === 'ERROR' ? 'error' : 'info', read: true
+    }))
+    unreadCount.value = 0
+  } catch { ElMessage.error('通知读取失败，请稍后重试') }
+}
 </script>
 
 <style scoped>

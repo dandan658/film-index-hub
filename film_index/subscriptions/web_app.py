@@ -1754,7 +1754,7 @@ def reset_backend_password(username):
 @handle_api_error
 def check_version():
     if True:
-        return jsonify({'success': True, 'version': 'v3.0.0', 'latest_version': 'v3.0.0', 'has_update': False, 'release_notes': '统一订阅与媒体整理工作台'})
+        return jsonify({'success': True, 'version': 'v3.0.1', 'latest_version': 'v3.0.1', 'has_update': False, 'release_notes': '统一订阅与媒体整理工作台'})
     """检查最新版本"""
     try:
         import feedparser

@@ -27,7 +27,7 @@
       }
   {% endfor %}
   </style>
-  <link href="../static/css/liquid-glass.css?v=1.2.0" rel="stylesheet"/>
+  <link href="../static/css/liquid-glass.css?v=3.0.1" rel="stylesheet"/>
 </head>
 <body class="layout-fluid {% if HubEmbedded %}fti-hub-embedded{% endif %}">
 <div class="page">
@@ -635,6 +635,7 @@
 
   // 显示成功提示
   function show_success_modal(title, func) {
+    $("#system_success_modal_btn").text("确定");
     $("#system_success_message").text(title);
     if (func) {
       $("#system_success_modal_btn").unbind('click').click(func);
@@ -1841,6 +1842,7 @@
   //停止刷新日志
   function stop_logging() {
     refresh_logging_flag = false;
+    clearTimeout(refresh_logging_timer);
   }
 
   // 日志来源筛选时关掉之前的刷新日志计时器
@@ -1849,7 +1851,8 @@
 
   //刷新日志
   function refresh_logging(flag) {
-    let refresh_new = $("#logging_content").children().length;
+    if (document.hidden) { refresh_logging_timer = setTimeout(() => refresh_logging(true), 2000); return; }
+    let refresh_new = 0;
     ajax_post("logging", {"refresh_new": refresh_new, "source": logger_source}, function (ret) {
       if (ret.loglist) {
         let log_list = ret.loglist;
@@ -1892,7 +1895,7 @@
         }
         let logging_table_obj = $("#logging_table");
         let bool_ToScrolTop = (logging_table_obj.scrollTop() + logging_table_obj.prop("offsetHeight")) >= logging_table_obj.prop("scrollHeight");
-        $("#logging_content").append(tbody);
+        $("#logging_content").html(tbody || '<tr><td colspan="3" class="text-muted">暂无日志，目录同步运行后将在这里显示。</td></tr>');
         if (bool_ToScrolTop){
           setTimeout(function () {
             logging_table_obj.scrollTop(logging_table_obj.prop("scrollHeight"));
@@ -1935,7 +1938,14 @@
   });
 
   // 显示实时日志
+  function show_sync_logging() {
+    $("#modal-logging .modal-title").text("目录同步日志");
+    logger_source = "Sync";
+    show_logging_modal();
+  }
+
   function show_logging_modal() {
+    clearTimeout(refresh_logging_timer);
     start_logging();
     $('#modal-logging').modal('show');
   }
@@ -1943,7 +1953,7 @@
   // 渲染日志来源下拉列表
   function get_logging_source(){
     $("#dropdown-menu-logger").html('')
-    var menu=['All', 'System', 'Rss', 'Rmt', 'Meta', 'Sync', 'Sites', 'Brush', 'Douban', 'Spider', 'Message', 'Indexer', 'Searcher', 'Subscribe', 'Downloader', 'TorrentRemover']
+    var menu=['All', 'System', 'Rmt', 'Meta', 'Sync', 'Message', 'Subtitle']
     for(var i=0;i<menu.length;i++){
       $("#dropdown-menu-logger").append(`<a class="dropdown-item"  href="javascript:logger_select('${menu[i]}')">${menu[i]}</a>`);
     }
@@ -2148,8 +2158,8 @@
 <script type="text/javascript">
   {{ CustomScriptCfg.javascript|safe or "" }}
 </script>
-<script src="../static/js/liquid-glass.js?v=1.2.0" defer></script>
-<script src="../static/js/glass-picker.js?v=1.2.0" defer></script>
+<script src="../static/js/liquid-glass.js?v=3.0.1" defer></script>
+<script src="../static/js/glass-picker.js?v=3.0.1" defer></script>
 {% if HubEmbedded %}<script src="/static/js/hub-bridge.js?v=2.0.0" defer></script>{% endif %}
 <script>window.hubScriptOnce = window.hubScriptOnce || {};window.loadHubScript = function(url){return window.hubScriptOnce[url] || (window.hubScriptOnce[url] = new Promise((resolve,reject)=>{const script=document.createElement("script");script.src=url;script.onload=resolve;script.onerror=reject;document.head.append(script)}))};</script>
 </body>

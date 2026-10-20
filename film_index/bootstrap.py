@@ -7,13 +7,15 @@ import shutil
 import sqlite3
 from datetime import datetime, timezone
 
-VERSION = '3.0.0'
+VERSION = '3.0.1'
 
 
 def prepare(data_dir):
     root = Path(data_dir).resolve()
     for name in ('config', 'media', 'log'):
         (root / name).mkdir(parents=True, exist_ok=True)
+    from film_index.backup import restore_pending
+    restore_pending(root)
     config = root / 'config/config.json'
     if config.exists():
         # Invalid existing data must stop startup rather than reset the user's tasks.

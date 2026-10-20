@@ -34,3 +34,13 @@ body .lit-navbar-canvas,body.theme-light .lit-navbar-canvas,body.theme-dark .lit
 
 body.fti-hub-embedded{background:transparent!important}
 .fti-hub-embedded .page-wrapper,.fti-hub-embedded #page_content,.fti-hub-embedded .page-body{background:transparent!important}.fti-hub-embedded .page-title{color:var(--fti-ink)}
+
+/* Compact, consistent close targets without the inherited rectangular outline. */
+.modal .btn-close{position:relative;flex:0 0 32px;width:32px;height:32px;padding:0!important;margin:0!important;border:0!important;border-radius:50%!important;box-shadow:none!important;opacity:.7;background-color:rgba(140,160,185,.1)!important;background-size:12px}
+.modal .btn-close:hover{opacity:1;background-color:rgba(90,155,255,.18)!important}
+.modal .btn-close:focus-visible{outline:2px solid #258cff;outline-offset:2px}
+#logging_table{max-height:60vh!important;overflow:auto}#logging_table td{overflow-wrap:anywhere;white-space:normal}
+#system-success-modal .modal-content{border-top:1px solid rgba(255,255,255,.9)!important;background:rgba(255,255,255,.96)!important}
+#system-success-modal .btn-success{background:#1687ff!important;border-color:transparent!important;border-radius:12px}
+
+.modal-content>.btn-close{position:absolute;top:16px;right:16px;z-index:2}

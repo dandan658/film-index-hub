@@ -850,3 +850,10 @@ def str_filesize(size):
 @bp.app_template_filter('hash')
 def md5_hash(text):
     return StringUtils.md5_hash(text)
+
+
+@bp.route('/activity', methods=['GET'])
+@login_required
+def activity():
+    from film_index.media.app.message import MessageCenter
+    return {"messages": MessageCenter().get_system_messages(num=50)}

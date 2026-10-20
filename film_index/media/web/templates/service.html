@@ -3,6 +3,7 @@
   <div class="page-header d-print-none">
     <div class="row align-items-center">
       <div class="col">
+        <button type="button" class="btn btn-outline-primary float-end" onclick="show_sync_logging()">目录同步日志</button>
         <h2 class="page-title">
           服务
         </h2>
@@ -239,7 +240,7 @@
         });
       });
     } else if (id === "backup") {
-      $('#modal-backup').modal('show');
+      window.parent.location.href = '/settings?tab=backup';
     } else {
       show_ask_modal("是否立即运行 " + name + "？", function () {
         hide_ask_modal();
@@ -252,7 +253,12 @@
   function run_scheduler(id, name) {
     const data = {"item": id};
     ajax_post("sch", data, function (ret) {
-      show_success_modal(`${name} 服务启动成功，正在后台运行`);
+      if (ret.code && ret.code !== 0) { show_fail_modal(ret.msg || '启动失败'); return; }
+      if (id === 'sync') {
+        $('#system-success-modal').one('hidden.bs.modal', show_sync_logging);
+        show_success_modal('目录同步已提交到后台。关闭此提示后查看实时日志。');
+        $('#system_success_modal_btn').text('查看同步日志');
+      } else { show_success_modal(`${name} 服务已提交到后台`); }
     });
   }
 
