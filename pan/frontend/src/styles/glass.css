@@ -1,0 +1,303 @@
+/* A shared visual system. Blur is limited to navigation and floating surfaces. */
+:root {
+  color-scheme: light;
+  --ios-ease: cubic-bezier(.22,1,.36,1);
+  --ios-spring: cubic-bezier(.16,1,.3,1);
+  --text-primary: #192c40;
+  --text-secondary: #5b7085;
+  --glass-panel: rgba(255,255,255,.72);
+  --glass-card: rgba(255,255,255,.64);
+  --glass-border: rgba(255,255,255,.88);
+  --glass-separator: rgba(59,93,128,.12);
+  --inset-surface: rgba(222,233,245,.42);
+  --hover-surface: rgba(255,255,255,.65);
+  --accent-soft: rgba(0,108,230,.10);
+  --glass-shadow: 0 12px 40px -22px rgba(27,61,97,.26), inset 0 1px 0 rgba(255,255,255,.9);
+  --el-color-primary: #006ce6;
+  --el-color-primary-light-3: #4795ee;
+  --el-color-primary-light-5: #80b5f2;
+  --el-color-primary-light-7: #b3d3f8;
+  --el-color-primary-light-8: #d3e5fb;
+  --el-color-primary-light-9: #eaf3ff;
+  --el-color-primary-dark-2: #0059c2;
+  --el-text-color-primary: var(--text-primary);
+  --el-text-color-regular: #40566d;
+  --el-text-color-secondary: var(--text-secondary);
+  --el-border-color: rgba(84,113,145,.22);
+  --el-border-color-light: rgba(84,113,145,.14);
+  --el-border-color-lighter: rgba(84,113,145,.10);
+  --el-fill-color-blank: rgba(255,255,255,.72);
+  --el-bg-color: #f4f8fd;
+  --el-bg-color-overlay: #f4f8fd;
+  --el-border-radius-base: 12px;
+  --el-border-radius-small: 8px;
+  --el-font-family: -apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  --el-font-size-base: 14px;
+}
+html { background:#eaf1f8; }
+html body { color:var(--text-primary); font-family:var(--el-font-family); background:radial-gradient(ellipse at 4% 0%,#d6eafa 0,transparent 46%),radial-gradient(ellipse at 98% 30%,#dce6fb 0,transparent 48%),radial-gradient(ellipse at 65% 100%,#def0eb 0,transparent 55%),#edf2f8; font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased; }
+html body #app { height:100dvh; background:transparent; }
+body button,body input,body textarea { font-family:inherit; }
+body :focus-visible { outline:3px solid rgba(0,108,230,.5); outline-offset:3px; }
+body ::-webkit-scrollbar { width:6px; height:6px; }
+body ::-webkit-scrollbar-track { background:transparent; }
+body ::-webkit-scrollbar-thumb { background:rgba(81,110,144,.25); border:1px solid transparent; border-radius:10px; }
+/* The header and rail float above the fixed, quiet background. */
+html body .app-layout .app-header { top:16px; left:16px; right:16px; height:64px; border-radius:23px; border:1px solid var(--glass-border); background:var(--glass-panel); box-shadow:var(--glass-shadow); }
+html body .app-layout .app-sidebar,html body .app-layout .app-bottom-nav { border:1px solid var(--glass-border); background:var(--glass-panel); box-shadow:var(--glass-shadow); }
+@supports(backdrop-filter:blur(1px)) {
+  html body .app-layout .app-header,html body .app-layout .app-sidebar,html body .app-layout .app-bottom-nav { backdrop-filter:blur(20px) saturate(140%); -webkit-backdrop-filter:blur(20px) saturate(140%); }
+}
+html body .app-layout .app-header .header-content { padding:0 22px; }
+html body .app-layout .app-header .app-title { font-size:17px; letter-spacing:-.5px; color:var(--text-primary); }
+html body .app-layout .app-header .app-logo { width:30px; height:30px; }
+html body .app-layout .app-header .user-info { padding:5px 10px 5px 5px; border-radius:22px; background:var(--inset-surface); }
+html body .app-layout .app-header .username { color:var(--text-primary); max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+html body .app-layout .user-avatar { background:rgba(0,108,230,.12); color:var(--el-color-primary); }
+html body .app-layout .polling-icon.active { animation:none; color:#218851; }
+/* Fluid content surfaces, with ample separation and consistent typography. */
+html body .app-layout :is(.tasks-view,.users-view,.settings-view,.dashboard) { padding:20px 24px 36px 12px; min-height:100%; background:transparent; min-width:0; }
+html body .app-layout .page-header { margin:0 0 26px; min-height:48px; gap:16px; flex-wrap:wrap; }
+html body .app-layout .page-title { font-size:clamp(25px,2.1vw,34px); line-height:1.2; letter-spacing:-1px; font-weight:720; color:var(--text-primary); }
+html body .app-layout .page-subtitle { color:var(--text-secondary); margin-top:7px; }
+html body .app-layout :is(.toolbar,.task-list-container,.settings-content,.stat-card,.system-info,.dashboard .quick-actions,.user-card,.el-card) { border:1px solid var(--glass-border); background:var(--glass-card); border-radius:22px; box-shadow:var(--glass-shadow); }
+html body .app-layout .toolbar { padding:16px; flex-wrap:wrap; gap:12px; }
+html body .app-layout .toolbar-left,html body .app-layout .toolbar-right { min-width:0; flex-wrap:wrap; gap:10px; }
+html body .app-layout .toolbar-left { flex:1; }
+html body .app-layout .toolbar-left > .el-input { flex:1 1 200px; max-width:360px; }
+html body .app-layout .toolbar .el-button + .el-button { margin-left:0; }
+html body .app-layout .stats-grid,html body .app-layout .stats-section { gap:16px; }
+html body .app-layout .stat-card { padding:24px; }
+html body .app-layout .stat-number { font-size:34px; font-weight:700; letter-spacing:-1px; color:var(--text-primary); font-variant-numeric:tabular-nums; }
+html body .app-layout .stat-label { color:var(--text-secondary); font-size:13px; }
+html body .app-layout .stat-icon { background:var(--accent-soft); color:var(--el-color-primary); border-radius:16px; width:50px; height:50px; }
+html body .app-layout .stat-icon.running { background:rgba(214,142,25,.12); color:#b57b13; }
+html body .app-layout .stat-icon.success { background:rgba(34,149,96,.12); color:#218851; }
+html body .app-layout .stat-icon.error { background:rgba(211,62,71,.10); color:#c9434c; }
+html body .app-layout .section-title { color:var(--text-primary); font-size:17px; letter-spacing:-.3px; }
+html body .app-layout .dashboard :is(.quick-actions,.system-info) { padding:22px; }
+html body .app-layout .dashboard .el-card { box-shadow:none; background:rgba(255,255,255,.35); border:1px solid var(--glass-separator); border-radius:17px; }
+html body .app-layout .action-card { cursor:pointer; transition:transform .22s var(--ios-ease),background-color .22s ease; }
+html body .app-layout .action-card:hover { transform:translateY(-3px); background:var(--hover-surface); }
+html body .app-layout .users-list { background:transparent; padding:0; }
+html body .app-layout .users-list > .el-card { box-shadow:none; background:transparent; border:0; }
+html body .app-layout .users-list > .el-card > .el-card__body { padding:0; }
+html body .app-layout .user-grid { grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr)); gap:16px; }
+html body .app-layout .user-card { padding:22px; }
+html body .app-layout .user-card.current-user { border-color:rgba(0,108,230,.24); background:rgba(237,246,255,.65); }
+html body .app-layout .user-card.invalid-user { border-color:rgba(211,62,71,.23); }
+/* Controls are tactile and compact, with clear focus and disabled states. */
+body .el-button { border-radius:12px; min-height:36px; font-weight:550; transition:transform .18s var(--ios-ease),background-color .18s ease,box-shadow .18s ease; }
+body .el-button:active:not(:disabled),body .action-btn:active:not(:disabled) { transform:scale(.96); }
+body .el-button--primary:not(.is-text):not(.is-plain) { background:var(--el-color-primary); border-color:transparent; box-shadow:0 4px 12px -7px rgba(0,108,230,.6),inset 0 1px 0 rgba(255,255,255,.25); }
+body .el-button--small { min-height:29px; border-radius:9px; }
+body .el-button.is-disabled { opacity:.55; }
+body .el-button-group { display:inline-flex; gap:5px; white-space:nowrap; }
+body .el-button-group > .el-button { border-radius:9px!important; margin:0!important; border:1px solid var(--el-border-color); }
+body :is(.el-input__wrapper,.el-select__wrapper,.el-textarea__inner) { min-height:38px; border-radius:11px; background:var(--el-fill-color-blank); box-shadow:0 0 0 1px var(--el-border-color) inset; }
+body .el-input-number .el-input__wrapper { padding-left:40px; padding-right:40px; }
+body .el-switch { --el-switch-on-color: #28aa71; }
+body .el-tag { border-radius:8px; border-color:transparent; font-weight:550; }
+body .el-tag--success { color:#197948; background:rgba(40,170,113,.12); }
+body .el-tag--warning { color:#93630d; background:rgba(212,156,36,.13); }
+body .el-tag--danger { color:#b33b45; background:rgba(211,62,71,.11); }
+body .el-tag--info { color:var(--text-secondary); background:var(--inset-surface); }
+body .el-radio-group { padding:4px; gap:3px; border-radius:13px; background:var(--inset-surface); display:inline-flex; flex-wrap:wrap; }
+body .el-radio-button__inner { border:0!important; border-radius:9px!important; background:transparent; box-shadow:none!important; }
+body .el-radio-button.is-active .el-radio-button__inner { background:var(--el-fill-color-blank); color:var(--el-color-primary); box-shadow:0 2px 7px rgba(28,64,99,.12)!important; }
+/* Table stays readable; horizontal scrolling belongs to the table, not the page. */
+html body .app-layout .task-list-container { overflow:hidden; }
+html body .app-layout .desktop-table { --el-table-bg-color:transparent; --el-table-tr-bg-color:transparent; --el-table-header-bg-color:rgba(238,245,253,.4); --el-table-row-hover-bg-color:var(--accent-soft); --el-table-border-color:var(--glass-separator); color:var(--text-primary); background:transparent; }
+html body .app-layout .desktop-table :is(th.el-table__cell,td.el-table__cell) { padding:17px 0; background:transparent; }
+html body .app-layout .desktop-table .el-table__header-wrapper th { color:var(--text-secondary); font-size:12px; font-weight:600; }
+
+html body .app-layout .desktop-table .el-table__row--striped td.el-table__cell { background:rgba(255,255,255,.20); }
+html body .app-layout .desktop-table .col-actions .cell { overflow:visible; padding-right:14px; }
+html body .app-layout .desktop-table .cell { font-size:13px; line-height:22px; }
+html body .app-layout .mobile-cards { padding:14px; }
+html body .app-layout .task-card { border:1px solid var(--glass-separator); border-radius:19px; box-shadow:none; background:rgba(255,255,255,.40); margin-bottom:14px; }
+html body .app-layout .task-card:last-child { margin-bottom:0; }
+html body .app-layout .card-actions { background:var(--inset-surface); padding:10px 14px; gap:9px; }
+html body .app-layout .action-btn { border-radius:12px; border-color:var(--glass-separator); background:var(--el-fill-color-blank); color:var(--text-secondary); }
+html body .app-layout .action-btn-primary { background:var(--el-color-primary); color:white; }
+html body .app-layout .action-btn-danger { background:rgba(211,62,71,.11); color:#b33b45; }
+/* Settings use an iOS segmented navigation and grouped form sections. */
+html body .app-layout .settings-content { padding:20px; }
+html body .app-layout .settings-content .el-card { box-shadow:none; background:rgba(255,255,255,.30); border-color:var(--glass-separator); border-radius:16px; }
+html body .app-layout .settings-tabs > .el-tabs__header { margin-bottom:22px; }
+html body .app-layout .settings-tabs > .el-tabs__header .el-tabs__nav-wrap::after { display:none; }
+html body .app-layout .settings-tabs .el-tabs__nav { background:var(--inset-surface); border-radius:13px; padding:4px; }
+html body .app-layout .settings-tabs .el-tabs__item { height:36px; padding:0 15px!important; color:var(--text-secondary); border-radius:10px; transition:background .2s ease,color .2s ease; }
+html body .app-layout .settings-tabs .el-tabs__item.is-active { background:var(--el-fill-color-blank); color:var(--el-color-primary); box-shadow:0 2px 8px rgba(28,64,99,.09); }
+html body .app-layout .settings-tabs .el-tabs__active-bar { display:none; }
+html body .app-layout .el-form-item__content { min-width:0; }
+html body .app-layout .form-tip { color:var(--text-secondary); }
+/* Floating panels and sheets carry the stronger glass effect. */
+body .el-overlay { background:rgba(22,39,60,.22); }
+body .el-dialog { --el-dialog-bg-color:var(--glass-panel); --el-dialog-border-radius:26px; width:min(var(--el-dialog-width,650px),calc(100vw - 32px)); max-width:calc(100vw - 32px); padding:24px; border:1px solid var(--glass-border); box-shadow:0 24px 90px -20px rgba(19,48,83,.35),inset 0 1px 0 rgba(255,255,255,.9); border-radius:26px; }
+body .el-dialog__title { color:var(--text-primary); font-size:19px; letter-spacing:-.5px; font-weight:650; }
+body .el-dialog__header { padding-right:30px; margin-bottom:20px; }
+body .el-dialog__headerbtn { border-radius:50%; width:32px; height:32px; right:18px; top:19px; background:var(--inset-surface); }
+body .el-dialog__footer { padding-top:20px; }
+body .el-dialog__body { color:var(--text-primary); overflow-wrap:anywhere; }
+body .task-runner-dialog :is(.task-info-section,.status-progress,.logs-container) { border-radius:16px; background:var(--inset-surface); border-color:var(--glass-separator); }
+body .el-dialog .section-title { color:var(--text-primary); }
+body .task-runner-dialog .info-item .value,body .task-runner-dialog .current-message { color:var(--text-primary); }
+body .el-drawer { max-width:calc(100vw - 16px); background:var(--glass-panel); border:1px solid var(--glass-border); border-radius:26px 0 0 26px; }
+body .el-message-box { max-width:calc(100vw - 32px); background:var(--glass-panel); border:1px solid var(--glass-border); border-radius:24px; padding:24px; box-shadow:var(--glass-shadow); }
+body .el-popper.is-light,body .el-message { border:1px solid var(--glass-border); border-radius:16px; background:var(--glass-panel); box-shadow:var(--glass-shadow); }
+body .el-dropdown-menu,body .el-select-dropdown { border-radius:16px; background:transparent; }
+body .el-dropdown-menu__item { border-radius:9px; margin:3px 5px; }
+@supports(backdrop-filter:blur(1px)) {
+  body .el-dialog,body .el-drawer,body .el-message-box,body .el-popper.is-light,body .el-message { backdrop-filter:blur(22px) saturate(135%); -webkit-backdrop-filter:blur(22px) saturate(135%); }
+}
+/* Route, sheet, menu and feedback transitions share one motion language. */
+.ios-page-enter-active { transition:opacity .28s ease,transform .38s var(--ios-spring); }
+.ios-page-leave-active { transition:opacity .12s ease,transform .16s ease; }
+.ios-page-enter-from { opacity:0; transform:translate3d(20px,8px,0); }
+.ios-page-leave-to { opacity:0; transform:translate3d(-10px,0,0); }
+body .dialog-fade-enter-active { animation:ios-overlay-in .2s ease!important; }
+body .dialog-fade-leave-active { animation:ios-overlay-in .16s ease reverse!important; }
+body .dialog-fade-enter-active .el-dialog { animation:ios-sheet-in .36s var(--ios-spring)!important; }
+body .dialog-fade-leave-active .el-dialog { animation:ios-sheet-in .18s ease reverse!important; }
+body :is(.el-zoom-in-top-enter-active,.el-zoom-in-bottom-enter-active,.el-zoom-in-center-enter-active) { transition:opacity .18s ease,transform .24s var(--ios-spring)!important; }
+body .el-tabs__content > .el-tab-pane { animation:ios-content-in .25s var(--ios-ease); }
+body .el-drawer { transition:transform .32s var(--ios-spring)!important; }
+@keyframes ios-overlay-in { from { opacity:0; } to { opacity:1; } }
+@keyframes ios-sheet-in { from { opacity:0; transform:translate3d(0,26px,0) scale(.97); } to { opacity:1; transform:translate3d(0,0,0) scale(1); } }
+@keyframes ios-content-in { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+/* Login uses the same surfaces and palette. */
+html body .login-container { background:transparent; min-height:100dvh; padding:24px; overflow:auto; }
+html body .login-card { background:var(--glass-panel); border:1px solid var(--glass-border); border-radius:30px; box-shadow:var(--glass-shadow); padding:40px 32px; }
+html body .login-card::before { display:none; }
+html body .login-title { color:var(--text-primary); font-size:23px; letter-spacing:-.7px; }
+html body .login-subtitle { color:var(--text-secondary); }
+html body .login-input { color:var(--text-primary); background:var(--el-fill-color-blank); border-color:var(--el-border-color); border-radius:13px; height:48px; font-size:16px; }
+@media(min-width:768px) and (max-width:1099px) {
+  html body .app-layout :is(.tasks-view,.users-view,.settings-view,.dashboard) { padding:16px 20px 28px 8px; }
+  html body .app-layout .toolbar-left > .el-input { max-width:none; }
+}
+@media(max-width:767px) {
+  html body .app-layout .app-header { top:max(10px,env(safe-area-inset-top)); left:12px; right:12px; height:60px; border-radius:21px; }
+  html body .app-layout .app-header .header-content { padding:0 14px; }
+  html body .app-layout .app-header .logo-area { gap:8px; }
+  html body .app-layout .app-header .app-title { display:block; font-size:14px; }
+  html body .app-layout .app-header .header-right { gap:7px; }
+  html body .app-layout .app-header .user-info { padding:4px; }
+  html body .app-layout .app-header .username,html body .app-layout .app-header .version-info,html body .app-layout .app-header .dropdown-arrow { display:none; }
+  html body .app-layout .app-header .app-logo { width:25px; height:25px; }
+  html body .app-layout :is(.tasks-view,.users-view,.settings-view,.dashboard) { padding:8px 14px 20px; }
+  html body .app-layout .page-header { margin-bottom:18px; gap:12px; }
+  html body .app-layout .page-title { font-size:27px; letter-spacing:-.8px; }
+  html body .app-layout .toolbar { padding:12px; border-radius:20px; }
+  html body .app-layout .toolbar-left { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; width:100%; }
+  html body .app-layout .toolbar-left > .el-input { grid-column:1 / -1; width:100%!important; max-width:none; }
+  html body .app-layout .toolbar-left > .el-select { width:100%!important; }
+  html body .app-layout .toolbar-left > .el-button { width:100%; }
+  html body .app-layout .toolbar-right { width:100%; }
+  html body .app-layout .toolbar-right .el-button-group { display:flex; flex-wrap:wrap; }
+  html body .app-layout .mobile-cards { padding:10px; }
+  html body .app-layout .task-card-body { padding:16px; }
+  html body .app-layout .card-actions { flex-wrap:wrap; }
+  html body .app-layout .action-btn { min-height:42px; }
+  html body .app-layout .stats-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  html body .app-layout .stats-section { grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; }
+  html body .app-layout .stat-card { padding:16px; border-radius:19px; min-width:0; }
+  html body .app-layout .stat-number { font-size:28px; }
+  html body .app-layout .stat-icon { width:38px; height:38px; border-radius:12px; }
+  html body .app-layout .stat-label { font-size:12px; }
+  html body .app-layout .dashboard :is(.action-grid,.info-grid) { grid-template-columns:1fr; }
+  html body .app-layout .dashboard :is(.quick-actions,.system-info) { padding:16px; }
+  html body .app-layout .settings-content { padding:12px; border-radius:20px; }
+  html body .app-layout .settings-content .el-card__body { padding:15px; }
+  html body .app-layout .settings-view .el-form-item { display:flex; flex-direction:column; align-items:stretch; }
+  html body .app-layout .settings-view .el-form-item__label { width:auto!important; height:auto; justify-content:flex-start; text-align:left; padding:0 0 7px; line-height:1.5; }
+  html body .app-layout .settings-view .el-form-item__content { margin-left:0!important; width:100%; }
+  html body .app-layout .settings-view :is(.el-input,.el-textarea,.el-select,.el-input-number) { max-width:100%; }
+  html body .app-layout .settings-view .el-tabs__nav-scroll { overflow:auto; scrollbar-width:none; }
+  html body .app-layout .settings-view .el-tabs__nav-wrap { padding:0!important; }
+  html body .app-layout .settings-view .el-tabs__nav-next,html body .app-layout .settings-view .el-tabs__nav-prev { display:none; }
+  body .el-dialog { margin:12px auto!important; max-height:calc(100dvh - 24px); overflow:auto; width:calc(100vw - 24px)!important; max-width:calc(100vw - 24px); padding:20px 16px; border-radius:25px; }
+  body .el-dialog .el-form-item__label { white-space:normal; }
+  body .task-runner-content { max-height:calc(100dvh - 180px); }
+  body .task-runner-dialog .task-info-grid { grid-template-columns:1fr; }
+  body .el-dialog .dialog-footer { flex-wrap:wrap; gap:8px; }
+  body .el-input__inner,body .el-textarea__inner { font-size:16px; }
+  .ios-page-enter-from { transform:translate3d(14px,0,0); }
+  @keyframes ios-sheet-in { from { opacity:0; transform:translate3d(0,40px,0); } to { opacity:1; transform:translate3d(0,0,0); } }
+}
+@media(max-width:359px) {
+  html body .app-layout .app-header .app-title { font-size:12px; }
+  html body .app-layout .app-header .polling-status { display:none; }
+  html body .app-layout .stats-grid { grid-template-columns:1fr; }
+}
+/* Consistent dark glass, rather than isolated dark patches from old components. */
+@media(prefers-color-scheme:dark) {
+  :root { color-scheme:dark; --text-primary:#e6eef8; --text-secondary:#a2b3c7; --glass-panel:rgba(29,44,64,.88); --glass-card:rgba(31,48,69,.78); --glass-border:rgba(186,211,242,.13); --glass-separator:rgba(174,200,232,.13); --inset-surface:rgba(153,187,224,.08); --hover-surface:rgba(160,194,233,.12); --accent-soft:rgba(94,167,255,.16); --glass-shadow:0 12px 40px -20px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.06); --el-color-primary:#70b4ff; --el-text-color-regular:#bfd0e3; --el-border-color:rgba(175,199,232,.23); --el-border-color-light:rgba(175,199,232,.14); --el-fill-color-blank:rgba(34,52,75,.85); --el-bg-color:#1b2a3d; --el-bg-color-overlay:#233750; --el-fill-color-light:rgba(149,185,229,.10); --el-fill-color-lighter:rgba(149,185,229,.06); }
+  html { background:#122033; }
+  html body { background:radial-gradient(ellipse at 0% 0%,#243c58,transparent 55%),radial-gradient(ellipse at 100% 100%,#1a3b43,transparent 55%),#142237; }
+  body .el-button--primary:not(.is-text):not(.is-plain) { color:#102a47; }
+  html body .app-layout .desktop-table { --el-table-header-bg-color:rgba(25,43,64,.5); }
+  html body .app-layout .desktop-table .el-table__row--striped td.el-table__cell,html body .app-layout .task-card,html body .app-layout .dashboard .el-card,html body .app-layout .settings-content .el-card { background:rgba(180,210,245,.035); }
+  html body .app-layout .user-card.current-user { background:rgba(46,110,185,.14); }
+  body .el-tag--success { color:#7de2aa; } body .el-tag--warning { color:#ebc16e; } body .el-tag--danger { color:#ff969f; }
+  html body .app-layout :is(.task-name,.user-card .username,.section-title,.action-content h3,.info-value),body .el-dialog :is(.info-item .value,.current-message) { color:var(--text-primary); }
+  body .el-dialog .el-alert { background:var(--inset-surface); }
+}
+@supports not (backdrop-filter:blur(1px)) {
+  :root { --glass-panel:#f6f9fd; --glass-card:#f6f9fd; }
+  @media(prefers-color-scheme:dark) { :root { --glass-panel:#1d2c40; --glass-card:#1f3045; } }
+}
+@media(prefers-reduced-transparency:reduce) {
+  :root { --glass-panel:#f6f9fd; --glass-card:#f6f9fd; }
+  body :is(.app-header,.app-sidebar,.app-bottom-nav,.el-dialog,.el-drawer,.el-popper,.el-message-box) { backdrop-filter:none!important; -webkit-backdrop-filter:none!important; }
+}
+@media(prefers-reduced-motion:reduce) {
+  *,*::before,*::after { animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; scroll-behavior:auto!important; }
+}
+
+html body .app-layout .no-share { font-size:12px; font-style:normal; color:var(--text-secondary); }
+html body .app-layout .source-link { color:var(--el-color-primary); white-space:nowrap; }
+@supports(backdrop-filter:blur(1px)) { html body .login-card { backdrop-filter:blur(22px) saturate(135%); -webkit-backdrop-filter:blur(22px) saturate(135%); } }
+html body .app-layout .page-header { flex-direction:row; align-items:center; }
+html body .app-layout .desktop-table .el-table-fixed-column--right { background:var(--el-bg-color)!important; }
+html body .app-layout .task-card { display:block; padding:0; overflow:hidden; }
+html body .app-layout .task-card-body { padding:18px; }
+html body .app-layout .task-card .card-content { margin-bottom:0; }
+html body .app-layout .card-actions { width:100%; flex-direction:row; justify-content:flex-end; padding:10px 14px; gap:8px; }
+html body .app-layout .action-btn { width:42px; height:42px; font-size:14px; white-space:nowrap; padding:6px; }
+html body .app-layout .content-row .value { color:var(--text-primary); }
+html body .app-layout .content-row .label { color:var(--text-secondary); min-width:72px; }
+@media(max-width:1200px) {
+  html body .app-layout .task-list-container { background:transparent; box-shadow:none; border:0; border-radius:0; }
+  html body .app-layout .mobile-cards { padding:0; }
+  html body .app-layout .task-card { background:var(--glass-card); border:1px solid var(--glass-border); box-shadow:var(--glass-shadow); }
+}
+@media(min-width:768px) and (max-width:1200px) {
+  html body .app-layout .mobile-cards { display:grid!important; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+  html body .app-layout .task-card { margin:0; align-self:start; }
+  html body .app-layout .toolbar-left { flex-direction:row; }
+}
+html body .app-layout .settings-tabs { padding:0; min-width:0; }
+html body .app-layout .settings-view .form-tip { flex-basis:100%; width:100%; min-width:0; max-width:100%; overflow-wrap:anywhere; white-space:normal; }
+html body .app-layout .settings-view .setting-section { min-width:0; }
+html body .app-layout .settings-view :is(h3,.info-label) { color:var(--text-primary); }
+html body .add-task-dialog .el-dialog__footer { background:transparent; border-top-color:var(--glass-separator); }
+html body .add-task-dialog .el-dialog__header { border-bottom-color:var(--glass-separator); padding:0 28px 16px 0; margin-bottom:0; }
+html body .add-task-dialog .el-dialog__body { padding:20px 0; }
+html body .add-task-dialog .form-help { color:var(--text-secondary); }
+@media(max-width:767px) {
+  html body .el-dialog { display:flex; flex-direction:column; overflow:hidden; }
+  html body .el-dialog__header,html body .el-dialog__footer { flex-shrink:0; }
+  html body .el-dialog__body { min-height:0; overflow:auto; }
+  html body .add-task-dialog .el-dialog__body { max-height:calc(100dvh - 175px); }
+  html body .add-task-dialog .el-dialog__footer { padding:12px 0 0; }
+}
+html body .app-layout .content-row .value { min-width:0; overflow-wrap:anywhere; white-space:normal; }
+html body .app-layout .task-card .task-name .source-link { white-space:normal; overflow-wrap:anywhere; }
+@media(prefers-reduced-transparency:reduce) and (prefers-color-scheme:dark) {
+  :root { --glass-panel:#1d2c40; --glass-card:#1f3045; }
+}
+body .el-message-fade-enter-active,body .el-message-fade-leave-active { transition:opacity .18s ease,transform .26s var(--ios-spring); }
+html body .app-layout .users-list { box-shadow:none; border:0; border-radius:22px; }
+html body .app-layout .user-grid { padding:0; }

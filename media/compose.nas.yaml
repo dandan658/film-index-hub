@@ -1,0 +1,23 @@
+services:
+  film-and-television-index:
+    image: ghcr.io/dandan658/film-and-television-index:latest
+    pull_policy: always
+    container_name: film-and-television-index
+    restart: unless-stopped
+    ports:
+      - "18510:3000"
+    environment:
+      TZ: Asia/Shanghai
+      NASTOOL_AUTO_UPDATE: "false"
+      NASTOOL_CONFIG: /config/config.yaml
+      PUID: "0"
+      PGID: "0"
+      UMASK: "022"
+    volumes:
+      - ./data/config:/config
+      - ${MEDIA_ROOT:-./media}:/media
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

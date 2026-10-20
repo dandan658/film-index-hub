@@ -1,0 +1,16 @@
+{
+  "name": "Film and Television Index",
+  "short_name": "Film Index",
+  "start_url": "../",
+  "icons": [
+    {
+      "src": "./img/film-index-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "theme_color": "#000000",
+  "background_color": "#000000",
+  "display": "standalone"
+}

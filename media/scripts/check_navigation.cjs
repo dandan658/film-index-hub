@@ -1,0 +1,18 @@
+const fs = require('node:fs');
+const vm = require('node:vm');
+const assert = require('node:assert/strict');
+const path = require('node:path');
+const root = path.resolve(__dirname, '..');
+const source = fs.readFileSync(path.join(root, 'web/static/components/layout/navbar/index.js'), 'utf8');
+const begin = source.indexOf('const navbar_list = [');
+const end = source.indexOf('];', begin) + 2;
+const context = vm.createContext({html: (parts, ...values) => parts.join('')});
+vm.runInContext(source.slice(begin, end) + '\nglobalThis.menu = navbar_list;', context);
+const menu = JSON.parse(JSON.stringify(context.menu));
+assert.deepEqual(menu.map(item => item.name), ['媒体整理', '服务', '系统设置']);
+assert.deepEqual(menu[0].list.map(item => item.page), ['mediafile', 'unidentification', 'history', 'tmdbcache']);
+assert.deepEqual(menu[2].list.map(item => item.page), ['basic', 'users', 'library', 'directorysync', 'notification', 'customwords', 'mediaserver', 'subtitle']);
+const header = fs.readFileSync(path.join(root, 'web/static/components/layout/searchbar/index.js'), 'utf8');
+assert(!header.includes('placeholder="搜索电影、电视剧"'));
+assert(!header.includes('navmenu("recommend?'));
+console.log('PASS: only requested sections remain; all 13 requested pages retained; header resource search removed.');

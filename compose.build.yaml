@@ -1,0 +1,20 @@
+services:
+  pan:
+    build:
+      context: ./pan
+      labels:
+        org.opencontainers.image.source: https://github.com/dandan658/film-index-hub
+        org.opencontainers.image.version: "2.0.0"
+  media:
+    build:
+      context: ./media
+      labels:
+        org.opencontainers.image.source: https://github.com/dandan658/film-index-hub
+        org.opencontainers.image.version: "2.0.0"
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+      labels:
+        org.opencontainers.image.source: https://github.com/dandan658/film-index-hub
+        org.opencontainers.image.version: "2.0.0"

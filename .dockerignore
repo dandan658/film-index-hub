@@ -1,0 +1,8 @@
+.git
+data
+media/node_modules
+pan/frontend/node_modules
+**/__pycache__
+**/*.pyc
+.env
+work

@@ -1,0 +1,11 @@
+.git
+.github
+__pycache__
+**/__pycache__
+**/*.pyc
+data
+media
+.env
+*.zip
+tests
+windows

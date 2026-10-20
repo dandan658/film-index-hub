@@ -1,0 +1,13 @@
+{
+  "project": "Film and Television Index",
+  "version": "1.2.0",
+  "modified": "2026-10-20",
+  "upstream_source": "https://github.com/NewBeesX/nas-tools-v2.9.1",
+  "upstream_commit": "e3a43d4f0896db49de02e9a9201ef2e5877af56f",
+  "upstream_version": "v2.9.1",
+  "license": "AGPL-3.0",
+  "runtime_image": "19970688/nastools-bt@sha256:ddddf9438000e43545e7b85cbed0f73fdcf26ef49dc0ac47ee98a38398a265a9",
+  "platform": "linux/amd64",
+  "publication": "public GitHub source and GHCR image",
+  "distribution": "GitHub source and GitHub Actions-built GHCR image"
+}

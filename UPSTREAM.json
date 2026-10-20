@@ -1,0 +1,14 @@
+{
+  "project": "Film Index Hub",
+  "version": "2.0.0",
+  "platform": "linux/amd64",
+  "pan_base": "dandan658/baidu-autosave-docker v1.7.0",
+  "media_base": "dandan658/film-and-television-index v1.2.0",
+  "primary_accounts": "existing Baidu backend accounts",
+  "services": [
+    "pan",
+    "media",
+    "gateway"
+  ],
+  "public_port": 18520
+}

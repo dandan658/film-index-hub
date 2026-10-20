@@ -1,0 +1,8 @@
+{
+  "third_party/anitopy": "605715eef358f92b7043ca2c263f04a4e951ab63",
+  "third_party/feapder": "4d5ff8250e74201270d752017cc4613b42b93870",
+  "third_party/plexapi": "2f52b300f1d3306c072f1d5804a279b2baa65cae",
+  "third_party/qbittorrent-api": "d50c48c83d7d6e3ed48fcb528d74789c515006e1",
+  "third_party/slack_bolt": "929008e1a8c2037a7137352406f448c5cdc22310",
+  "third_party/transmission-rpc": "906aff4a4d194f92d26560baf7f3a68b75e11cc0"
+}

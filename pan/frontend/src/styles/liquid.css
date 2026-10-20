@@ -1,0 +1,67 @@
+/* Liquid Glass: one optical material across the application. Layout remains in glass.css. */
+:root {
+  --text-primary:#132e45; --text-secondary:#526d80;
+  --glass-panel:rgba(247,253,255,.55); --glass-card:rgba(247,253,255,.43);
+  --glass-border:rgba(255,255,255,.80); --glass-separator:rgba(53,99,125,.13);
+  --inset-surface:rgba(237,249,255,.48); --hover-surface:rgba(255,255,255,.65);
+  --liquid-surface:linear-gradient(132deg,rgba(255,255,255,.72),rgba(255,255,255,.29) 45%,rgba(238,251,255,.46));
+  --liquid-shadow:0 22px 60px -35px rgba(25,88,125,.42),0 4px 16px -10px rgba(38,95,132,.20),inset 1px 1px 0 rgba(255,255,255,.92),inset -1px -1px 0 rgba(255,255,255,.38);
+  --glass-shadow:var(--liquid-shadow); --el-fill-color-blank:rgba(250,254,255,.6);
+  --el-bg-color:#eaf5fa; --el-bg-color-overlay:#eff8fc;
+}
+html body { background:radial-gradient(ellipse at 4% 12%,rgba(93,192,231,.40),transparent 38%),radial-gradient(ellipse at 98% 18%,rgba(104,173,246,.33),transparent 41%),radial-gradient(ellipse at 68% 96%,rgba(100,216,198,.36),transparent 42%),linear-gradient(145deg,#ecf6fb,#dcecf7 55%,#e7f7f3); background-attachment:fixed; }
+html body .app-layout :is(.app-header,.app-sidebar,.app-bottom-nav,.toolbar,.task-list-container,.settings-content,.stat-card,.system-info,.dashboard .quick-actions,.user-card) { background:var(--liquid-surface); border-color:var(--glass-border); box-shadow:var(--liquid-shadow); }
+html body .app-layout :is(.app-header,.app-sidebar,.app-bottom-nav) { border-radius:26px; }
+html body .app-layout .app-header { border-bottom-color:rgba(255,255,255,.42); }
+html body .app-layout :is(.toolbar,.task-list-container,.settings-content,.stat-card,.system-info,.dashboard .quick-actions,.user-card) { border-radius:25px; }
+html body .app-layout .page-title { font-weight:740; letter-spacing:-1.2px; }
+html body .app-layout .el-menu { background:transparent; }
+html body .app-layout .el-menu-item { border-radius:15px; margin-bottom:5px; color:var(--text-secondary); transition:background .2s ease,transform .2s var(--ios-spring); }
+html body .app-layout .el-menu-item.is-active { background:linear-gradient(120deg,rgba(255,255,255,.80),rgba(255,255,255,.30)); color:var(--el-color-primary); box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 4px 15px -10px rgba(26,105,173,.35); }
+html body .app-layout .el-menu-item:hover { background:var(--hover-surface); }
+html body .app-layout .app-bottom-nav .nav-item.active { background:var(--accent-soft); border-radius:18px; }
+html body .app-layout :is(.task-card,.settings-content .el-card,.dashboard .el-card,.backend-login-row,.tmdb-result,.tmdb-selected,.tmdb-settings) { background:linear-gradient(125deg,rgba(255,255,255,.5),rgba(255,255,255,.22)); border-color:var(--glass-border); box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 6px 20px -18px rgba(22,75,110,.35); }
+html body .app-layout .desktop-table { --el-table-header-bg-color:rgba(255,255,255,.28); --el-table-row-hover-bg-color:rgba(255,255,255,.40); }
+html body .app-layout .desktop-table .el-table__row--striped td.el-table__cell { background:rgba(255,255,255,.12); }
+html body .app-layout .desktop-table .el-table-fixed-column--right { background:var(--el-bg-color)!important; }
+body .el-button:not(.is-text):not(.el-button--primary):not(.el-button--danger):not(.el-button--warning) { background:linear-gradient(140deg,rgba(255,255,255,.8),rgba(255,255,255,.35)); border-color:var(--glass-border); color:var(--text-primary); box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 3px 8px -6px rgba(27,81,113,.3); }
+body .el-button { border-radius:13px; }.el-button:focus-visible { outline-offset:3px; }
+body .el-button--primary:not(.is-text):not(.is-plain) { background:linear-gradient(135deg,#1688ff,#0061dc); box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 8px 18px -11px rgba(0,95,217,.65); border:1px solid rgba(255,255,255,.3); color:white; }
+body :is(.el-input__wrapper,.el-select__wrapper,.el-textarea__inner) { background:var(--inset-surface); box-shadow:inset 0 1px 3px rgba(29,80,113,.06),0 0 0 1px var(--glass-border); border-radius:13px; }
+body :is(.el-input__wrapper,.el-select__wrapper).is-focus { box-shadow:0 0 0 2px var(--accent-soft),0 0 0 1px var(--el-color-primary); }
+body .el-switch__core { box-shadow:inset 0 1px 3px rgba(20,73,108,.12); }.el-switch__action { box-shadow:0 1px 4px rgba(15,55,81,.18); }
+body .el-radio-group { border:1px solid rgba(255,255,255,.45); box-shadow:inset 0 1px 3px rgba(36,81,113,.05); }
+body .el-radio-button.is-active .el-radio-button__inner { background:var(--liquid-surface); color:var(--el-color-primary); box-shadow:0 3px 9px -5px rgba(29,76,109,.45),inset 0 1px 0 rgba(255,255,255,.9)!important; }
+body .el-dialog,body .el-drawer,body .el-message-box,body .el-popper.is-light,body .el-message { background:var(--liquid-surface); border:1px solid var(--glass-border); box-shadow:var(--liquid-shadow); }
+body .el-dialog { border-radius:30px; box-shadow:0 35px 100px -30px rgba(19,64,101,.4),inset 1px 1px 0 rgba(255,255,255,.9),inset -1px -1px 0 rgba(255,255,255,.4); }
+body .el-overlay { background:rgba(30,61,87,.19); }
+body .el-dialog :is(.el-dialog__header,.el-dialog__footer) { background:transparent; }
+body .task-runner-dialog :is(.task-info-section,.status-progress-card,.log-container),body .task-log-dialog .log-container { background:var(--inset-surface); border-color:var(--glass-border); border-radius:16px; }
+body .task-runner-dialog :is(.log-entry,.log-line) { border-bottom-color:var(--glass-separator); }
+body .el-loading-mask { background:rgba(232,246,252,.65); }
+body .el-popper .el-select-dropdown__item.is-hovering,body .el-dropdown-menu__item:not(.is-disabled):hover { background:var(--accent-soft); }
+body .el-dropdown-menu { background:transparent; }
+body .el-alert { background:var(--inset-surface); border-radius:14px; }
+body .route-guard-loading { background:transparent; }
+html body .app-layout .account-password-native-input { background:var(--inset-surface); border:1px solid var(--glass-border); border-radius:13px; color:var(--text-primary); box-shadow:inset 0 1px 3px rgba(29,80,113,.06); }
+html body .app-layout :is(.cron-schedule-item,.cron-schedule-item:hover,.notification-field,.user-details) { background:var(--inset-surface); border-color:var(--glass-border); border-radius:14px; }
+html body .task-runner-dialog :is(.status-progress,.files-list,.logs-container,.task-info-section) { background:var(--inset-surface); border-color:var(--glass-border); border-radius:16px; }
+html body .task-runner-dialog :is(.section-title,.info-item .value,.current-message,.log-message) { color:var(--text-primary); }
+html body .task-runner-dialog :is(.info-item .label,.elapsed-time,.file-size) { color:var(--text-secondary); }
+@supports(backdrop-filter:blur(1px)) {
+  html body .app-layout :is(.toolbar,.task-list-container,.settings-content,.stat-card,.system-info,.dashboard .quick-actions,.user-card) { backdrop-filter:blur(12px) saturate(145%); -webkit-backdrop-filter:blur(12px) saturate(145%); }
+  html body .app-layout :is(.app-header,.app-sidebar,.app-bottom-nav),body .el-dialog,body .el-drawer,body .el-message-box,body .el-popper.is-light { backdrop-filter:blur(24px) saturate(155%); -webkit-backdrop-filter:blur(24px) saturate(155%); }
+  html body .app-layout :is(.task-card,.settings-content .el-card,.dashboard .el-card) { backdrop-filter:none; -webkit-backdrop-filter:none; }
+}
+.ios-page-enter-active { transition:opacity .22s ease,transform .36s var(--ios-spring); }.ios-page-enter-from { opacity:0; transform:translate3d(0,12px,0) scale(.993); }.ios-page-leave-to { opacity:0; transform:translate3d(0,-5px,0); }
+@media(max-width:1200px) { html body .app-layout .task-list-container { background:transparent; border:0; box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; }html body .app-layout .task-card { background:var(--liquid-surface); box-shadow:var(--liquid-shadow); } }
+@media(max-width:767px) { html body .app-layout :is(.app-header,.app-bottom-nav) { border-radius:24px; }body .el-dialog { border-radius:27px; }html body .app-layout .settings-content { backdrop-filter:none; -webkit-backdrop-filter:none; } }
+@media(prefers-color-scheme:dark) {
+  :root { --text-primary:#e9f4ff; --text-secondary:#abc1d4; --glass-panel:rgba(25,48,68,.72); --glass-card:rgba(25,48,68,.65); --glass-border:rgba(195,229,255,.19); --glass-separator:rgba(174,212,242,.13); --inset-surface:rgba(11,34,52,.40); --hover-surface:rgba(142,203,247,.12); --liquid-surface:linear-gradient(135deg,rgba(69,108,138,.48),rgba(21,43,65,.65) 48%,rgba(29,71,80,.48)); --liquid-shadow:0 22px 60px -30px rgba(0,0,0,.5),inset 1px 1px 0 rgba(209,237,255,.18),inset -1px -1px 0 rgba(156,209,237,.08); --glass-shadow:var(--liquid-shadow); --el-fill-color-blank:rgba(28,53,74,.7); --el-bg-color:#1a3348; --el-bg-color-overlay:#203d52; }
+  html body { background:radial-gradient(ellipse at 0% 5%,rgba(29,109,153,.5),transparent 43%),radial-gradient(ellipse at 100% 0%,rgba(40,78,161,.4),transparent 44%),radial-gradient(ellipse at 65% 100%,rgba(18,115,110,.36),transparent 45%),#0d2032; background-attachment:fixed; }
+  html body .app-layout .el-menu-item.is-active,body .el-button:not(.is-text):not(.el-button--primary):not(.el-button--danger):not(.el-button--warning),html body .app-layout :is(.task-card,.settings-content .el-card,.dashboard .el-card,.backend-login-row,.tmdb-result,.tmdb-selected,.tmdb-settings) { background:var(--liquid-surface); box-shadow:inset 0 1px 0 rgba(199,230,255,.12); }
+  body .el-dialog { box-shadow:0 35px 100px -30px rgba(0,0,0,.65),inset 1px 1px 0 rgba(209,237,255,.18); }body .el-loading-mask { background:rgba(16,39,57,.75); }body .el-overlay { background:rgba(3,14,24,.4); }
+}
+@supports not (backdrop-filter:blur(1px)) { :root { --liquid-surface:#eff8fc; }@media(prefers-color-scheme:dark) { :root { --liquid-surface:#203b50; } } }
+@media(prefers-reduced-transparency:reduce) { :root { --liquid-surface:#eff8fc; --inset-surface:#e7f1f7; }body :is(.app-header,.app-sidebar,.app-bottom-nav,.toolbar,.task-list-container,.settings-content,.stat-card,.system-info,.quick-actions,.user-card,.el-dialog,.el-drawer,.el-message-box,.el-popper.is-light,.el-message) { backdrop-filter:none!important; -webkit-backdrop-filter:none!important; }@media(prefers-color-scheme:dark) { :root { --liquid-surface:#203b50; --inset-surface:#183247; } } }
+@media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }
