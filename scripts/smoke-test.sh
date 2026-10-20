@@ -16,7 +16,7 @@ ids=$("${compose[@]}" ps -q)
 [[ $(echo "$ids" | wc -l) == 1 ]]
 docker stats --no-stream --format '{{.Name}} {{.MemUsage}} {{.CPUPerc}}' $ids | tee /tmp/film-index-resources.txt
 docker top "$ids" -eo pid,args | tee /tmp/film-index-processes.txt
-[[ $(docker top "$ids" -eo args | tail -n +2 | wc -l) == 1 ]]
-! docker top "$ids" -eo args | grep -E 'nginx|pm2|hub_server|Xvfb|chromium'
+[[ $(tail -n +2 /tmp/film-index-processes.txt | wc -l) == 1 ]]
+! grep -E 'nginx|pm2|hub_server|Xvfb|chromium' /tmp/film-index-processes.txt
 echo 'PASS: one running container, one Python server process, no HTTP gateway or second backend'
 
