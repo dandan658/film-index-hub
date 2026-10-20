@@ -27,5 +27,18 @@
       "python3 hub_server.py"
     ]
   },
-  "real_stack": "pending updated image verification"
+  "real_stack": "passed",
+  "tested_revision": "247174b3ed044afdbf092ae7537c2d22905943d2",
+  "actions_url": "https://github.com/dandan658/film-index-hub/actions/runs/39391120561",
+  "frontend_build": "passed",
+  "frontend_typecheck": "passed",
+  "baidu_regression_tests": 67,
+  "media_pages_checked": 12,
+  "anonymous_pull_verified": true,
+  "images": {
+    "ghcr.io/dandan658/film-index-hub:latest": "sha256:493bdd60e4038a94fc19476aca21674c8e03783c3e5ab474f1ef291df53378df",
+    "ghcr.io/dandan658/film-index-hub-pan:latest": "sha256:b6876bec0bd387dcb31e85a5433296b868916247b9f5be7552e6bbc973b8e820",
+    "ghcr.io/dandan658/film-index-hub-media:latest": "sha256:9bde127d3a5f4b0c50812fdcfd9dfd874e6e19caee0a90ccfc6d23cb53bce259"
+  },
+  "navigation": "text-only with equal left padding for all levels"
 }

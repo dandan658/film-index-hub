@@ -63,3 +63,5 @@ docker compose -f compose.yaml -f compose.build.yaml up -d
 发布 v2.0.0 已通过[整套容器验证](https://github.com/dandan658/film-index-hub/actions/runs/39387604322)，测试镜像源码提交为 `e9113ff949525a77f929cc603cda965693b265dc`。包括 67 项网盘回归、12 个媒体页面、原会话重启保留、第二个后台账号登录和退出权限撤销。测试机启动并完成登录/重启测试后的内存采样：网盘 41.84MiB、媒体 93.17MiB、网关 3.523MiB，合计约 139MiB；媒体进程只有 `python3 hub_server.py`。这是空配置测试样本，实际 NAS 负载需部署后观察。
 
 界面更新 v2.0.1：统一固定为白色半透明玻璃，包括登录页、弹窗和媒体工作台，不跟随系统切换深色。
+
+v2.0.1 的导航已移除装饰图标，菜单和子菜单文字左对齐。已通过[更新后的完整构建及登录测试](https://github.com/dandan658/film-index-hub/actions/runs/39391120561)，三个 latest 镜像均已核对可匿名拉取。测试源码提交为 `247174b3ed044afdbf092ae7537c2d22905943d2`。
