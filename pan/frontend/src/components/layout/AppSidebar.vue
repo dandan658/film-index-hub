@@ -259,5 +259,5 @@ onUnmounted(() => window.removeEventListener('resize', handleResize))
 .collapsed-btn { padding:0; width:44px!important; margin:auto; display:flex; }
 @media(max-width:767px) { .app-sidebar { display:none; } }
 
-.sidebar-menu :deep(.el-sub-menu .el-menu-item){height:36px;line-height:36px;font-size:13px}.sidebar-menu :deep(.el-sub-menu__title){height:44px;line-height:44px}
+.sidebar-menu :deep(.el-sub-menu .el-menu-item){height:36px;line-height:36px;font-size:13px}.sidebar-menu :deep(.el-sub-menu__title){color:var(--text-secondary);height:44px;line-height:44px}
 </style>

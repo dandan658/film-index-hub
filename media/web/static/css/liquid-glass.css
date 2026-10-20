@@ -31,3 +31,6 @@ body .lit-navbar-canvas,body.theme-light .lit-navbar-canvas,body.theme-dark .lit
 @media(prefers-reduced-transparency:reduce){.fti-picker,.lit-navbar-canvas{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:var(--fti-solid)!important}}
 
 .fti-hub-embedded layout-navbar,.fti-hub-embedded layout-searchbar{display:none!important}.fti-hub-embedded .page-wrapper{margin:0!important;padding:0!important}.fti-hub-embedded .page{background:transparent!important}.fti-hub-embedded .page-body{margin-top:12px}.fti-hub-embedded .page-header{margin-top:12px}
+
+body.fti-hub-embedded{background:transparent!important}
+.fti-hub-embedded .page-wrapper,.fti-hub-embedded #page_content,.fti-hub-embedded .page-body{background:transparent!important}.fti-hub-embedded .page-title{color:var(--fti-ink)}

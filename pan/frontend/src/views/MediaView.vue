@@ -2,17 +2,22 @@
   <section class="hub-media-view">
     <div class="hub-media-toolbar"><span>媒体整理</span><el-select aria-label="媒体功能" v-model="selected" style="width:200px"><el-option v-for="item in mediaPages" :key="item.page" :value="item.page" :label="item.label" /></el-select><button type="button" @click="reload">刷新</button></div>
     <div v-if="!ready" class="hub-media-loading" role="status">正在打开媒体工作台…</div>
-    <iframe ref="frame" :src="initialSource" title="媒体整理工作台" @load="ready = true" />
+    <iframe ref="frame" :src="initialSource" title="媒体整理工作台" @load="onFrameLoad" />
   </section>
 </template>
 <script setup lang="ts">
-import {computed,ref,watch} from 'vue'
+import {computed,ref,watch,onMounted,onUnmounted} from 'vue'
 import {useRoute,useRouter} from 'vue-router'
 import {mediaPages,validMediaPage} from '@/config/mediaPages'
 const route=useRoute(), router=useRouter(), frame=ref<HTMLIFrameElement>(),ready=ref(false)
 const selected=computed({get:()=>validMediaPage(route.query.page),set:page=>router.replace({path:'/media',query:{page}})})
 const initialSource=ref('/media-engine/?next='+selected.value)
 watch(selected,page=>{if(ready.value)frame.value?.contentWindow?.postMessage({type:'film-hub:navigate',page},location.origin);else initialSource.value='/media-engine/?next='+page})
+const appearance=window.matchMedia('(prefers-color-scheme: dark)')
+const syncTheme=()=>frame.value?.contentWindow?.postMessage({type:'film-hub:theme',dark:appearance.matches},location.origin)
+const onFrameLoad=()=>{ready.value=true;syncTheme()}
+onMounted(()=>appearance.addEventListener('change',syncTheme))
+onUnmounted(()=>appearance.removeEventListener('change',syncTheme))
 const reload=()=>{ready.value=false;initialSource.value='/media-engine/?next='+selected.value+'&reload='+Date.now()}
 </script>
 <style scoped>
