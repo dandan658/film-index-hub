@@ -1,7 +1,7 @@
 {
-  "version": "3.0.0",
-  "tested_revision": "fbf9ce76d83cd765374a8fd2df5911047aebe31b",
-  "actions_url": "https://github.com/dandan658/film-index-hub/actions/runs/39399957763",
+  "version": "3.0.1",
+  "tested_revision": "f102d472ab3ab9d69f51223f98d5513ba07d7a8d",
+  "actions_url": "https://github.com/dandan658/film-index-hub/actions/runs/39406542710",
   "real_linux_container_tests": "passed",
   "subscription_regression_tests": 67,
   "parallel_database_requests": 24,
@@ -22,7 +22,7 @@
     "directory_sync_configuration"
   ],
   "idle_resource_sample": {
-    "memory_mib": 105.7,
+    "memory_mib": 105.8,
     "cpu_percent": 0.01,
     "environment": "GitHub Actions, synthetic legacy data after migration and restart; not the user NAS"
   },
@@ -35,7 +35,7 @@
     "platforms": [
       "linux/amd64"
     ],
-    "digest": "sha256:062d30099a8cc1b2e19959c16a0ccf5511d5a2b75549b217180f926a3da0c0e8"
+    "digest": "sha256:6821d895d20199b9659fd3b575b3f3036b855aba3719ef1e8e995107eeb6d301"
   },
   "image_command": [
     "python",
@@ -44,5 +44,12 @@
   ],
   "image_exposed_ports": [
     "5000/tcp"
+  ],
+  "backup_roundtrip_and_invalid_archive_tests": "passed",
+  "local_browser_checks": [
+    "notification drawer with actual sync events",
+    "sync log modal and close cleanup",
+    "manual identification close button",
+    "complete backup settings"
   ]
 }
