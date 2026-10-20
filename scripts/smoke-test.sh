@@ -1,27 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cat > /tmp/film-hub-ci.yaml <<'YAML'
-services:
-  pan:
-    environment:
-      ADMIN_PASSWORD: ci-smoke-test-only
-YAML
-compose=(docker compose -p film-hub-ci -f compose.yaml -f compose.build.yaml -f /tmp/film-hub-ci.yaml)
-cleanup(){ status=$?; if [[ "$status" != 0 ]]; then "${compose[@]}" logs --tail=150; fi; "${compose[@]}" down --remove-orphans; exit "$status"; }
+image=ghcr.io/dandan658/film-index-hub:latest
+mkdir -p data media/source media/destination
+compose=(docker compose -p film-index-ci -f compose.yaml)
+cleanup(){ status=$?; if [[ "$status" != 0 ]]; then "${compose[@]}" logs --tail=100; fi; "${compose[@]}" down --remove-orphans; exit "$status"; }
 trap cleanup EXIT
+docker run --rm --entrypoint python -v "$PWD/data:/fixture" -v "$PWD/tests:/tests:ro" "$image" /tests/create_legacy_fixture.py /fixture
 "${compose[@]}" up -d --no-build --pull never --wait --wait-timeout 240
-python3 scripts/test_gateway.py
-"${compose[@]}" restart pan media
+python3 scripts/test_single_application.py
+"${compose[@]}" restart
 "${compose[@]}" up -d --no-build --pull never --wait --wait-timeout 180
-for attempt in $(seq 1 90); do
-  if curl --max-time 3 -fsS http://127.0.0.1:18520/healthz >/dev/null; then break; fi
-  sleep 2
-done
-python3 scripts/test_gateway.py --after-restart
-"${compose[@]}" ps --format json > /tmp/film-hub-containers.json
+python3 scripts/test_single_application.py --after-restart
+docker run --rm --entrypoint python -v "$PWD/data:/fixture" -v "$PWD/tests:/tests:ro" "$image" /tests/check_persistent_data.py /fixture
 ids=$("${compose[@]}" ps -q)
-docker stats --no-stream --format '{{.Name}} {{.MemUsage}} {{.CPUPerc}}' $ids | tee /tmp/film-hub-resources.txt
-for id in $("${compose[@]}" ps -q media); do
-  docker top "$id" -eo pid,args > /tmp/film-hub-media-processes.txt
-  ! grep -E 'pm2|Xvfb|chromium' /tmp/film-hub-media-processes.txt
- done
+[[ $(echo "$ids" | wc -l) == 1 ]]
+docker stats --no-stream --format '{{.Name}} {{.MemUsage}} {{.CPUPerc}}' $ids | tee /tmp/film-index-resources.txt
+docker top "$ids" -eo pid,args | tee /tmp/film-index-processes.txt
+[[ $(docker top "$ids" -eo args | tail -n +2 | wc -l) == 1 ]]
+! docker top "$ids" -eo args | grep -E 'nginx|pm2|hub_server|Xvfb|chromium'
+echo 'PASS: one running container, one Python server process, no HTTP gateway or second backend'
+

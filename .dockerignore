@@ -1,8 +1,11 @@
 .git
 data
-media/node_modules
-pan/frontend/node_modules
+work
+tests
+node_modules
+frontend/node_modules
+frontend/dist
 **/__pycache__
 **/*.pyc
 .env
-work
+

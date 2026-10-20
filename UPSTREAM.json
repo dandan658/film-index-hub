@@ -1,14 +1,14 @@
 {
-  "project": "Film Index Hub",
-  "version": "2.0.1",
-  "platform": "linux/amd64",
-  "pan_base": "dandan658/baidu-autosave-docker v1.7.0",
-  "media_base": "dandan658/film-and-television-index v1.2.0",
-  "primary_accounts": "existing Baidu backend accounts",
-  "services": [
-    "pan",
-    "media",
-    "gateway"
+  "project": "Film Index",
+  "version": "3.0.0",
+  "architecture": "single Flask application, single Python process, single container",
+  "repository": "https://github.com/dandan658/film-index-hub",
+  "base_image": "python:3.10-slim-bookworm",
+  "source_origins": [
+    {"project": "baidu-autosave", "url": "https://github.com/dandan658/baidu-autosave-docker", "release": "1.7.0"},
+    {"project": "Film and Television Index", "url": "https://github.com/dandan658/film-and-television-index", "release": "1.2.0"},
+    {"project": "nas-tools-v2.9.1", "url": "https://github.com/NewBeesX/nas-tools-v2.9.1", "commit": "e3a43d4f0896db49de02e9a9201ef2e5877af56f"}
   ],
-  "public_port": 18520
+  "license": "AGPL-3.0",
+  "runtime_dependency_on_legacy_images": false
 }

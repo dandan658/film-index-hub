@@ -1,4 +1,4 @@
-name: Build and test integrated Film Index Hub
+name: Build and verify the single Film Index application
 on:
   push:
     branches: [main]
@@ -7,50 +7,38 @@ permissions:
   contents: read
   packages: write
 concurrency:
-  group: hub-release
+  group: unified-release
   cancel-in-progress: true
 jobs:
   publish:
     runs-on: ubuntu-24.04
     timeout-minutes: 40
-    env:
-      BUILD_REVISION: ${{ github.sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Test shared login and media guard
-        run: |
-          python3 -m pip install Flask==2.1.2 Werkzeug==2.1.2 Flask-Login==0.6.3
-          python3 -m unittest discover -s tests -v
-          cd media
-          python3 -m unittest discover -s tests -p test_media_profile.py -v
-          python3 -m unittest discover -s tests -p test_directory_listing.py -v
-      - name: Package public source and build all services
+      - name: Package complete source and build one image from Python
         run: |
           python3 scripts/source_bundle.py
-          docker compose -f compose.yaml -f compose.build.yaml build
-      - name: Test Baidu task and authentication regressions
-        run: docker run --rm --entrypoint python -v "${{ github.workspace }}/pan/tests:/tests:ro" ghcr.io/dandan658/film-index-hub-pan:latest -m unittest discover -s /tests -v
-      - name: Test original accounts, one login, media pages, session persistence and idle resources
+          docker build --label org.opencontainers.image.revision=${{ github.sha }} -t ghcr.io/dandan658/film-index-hub:latest .
+      - name: Test retained subscription behavior and original accounts
+        run: docker run --rm --entrypoint python -v "${{ github.workspace }}/tests:/tests:ro" ghcr.io/dandan658/film-index-hub:latest -m unittest discover -s /tests/subscriptions -v
+      - name: Test legacy data migration, one process and single-session access
         run: bash scripts/smoke-test.sh
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: integration-evidence
+          name: single-application-evidence
           path: |
-            /tmp/film-hub-resources.txt
-            /tmp/film-hub-media-processes.txt
+            /tmp/film-index-resources.txt
+            /tmp/film-index-processes.txt
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Publish only the verified stack
+      - name: Publish the single verified image
         run: |
-          set -euo pipefail
-          for image in film-index-hub film-index-hub-pan film-index-hub-media; do
-            docker tag "ghcr.io/dandan658/$image:latest" "ghcr.io/dandan658/$image:2.0.1"
-            docker push "ghcr.io/dandan658/$image:2.0.1"
-            docker push "ghcr.io/dandan658/$image:latest"
-          done
+          docker tag ghcr.io/dandan658/film-index-hub:latest ghcr.io/dandan658/film-index-hub:3.0.0
+          docker push ghcr.io/dandan658/film-index-hub:3.0.0
+          docker push ghcr.io/dandan658/film-index-hub:latest

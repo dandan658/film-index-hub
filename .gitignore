@@ -1,6 +1,11 @@
+.git
 data/
-**/node_modules/
-**/__pycache__/
-**/*.pyc
+work/
+/media/
+node_modules/
+dist/
+__pycache__/
+*.pyc
 .env
-source-bundle.zip
+source.zip
+

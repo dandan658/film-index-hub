@@ -1,66 +1,27 @@
 services:
-  pan:
-    image: ghcr.io/dandan658/film-index-hub-pan:latest
+  film-index:
+    image: ghcr.io/dandan658/film-index-hub:latest
     pull_policy: always
+    container_name: film-index
     restart: unless-stopped
+    ports:
+      - "18520:5000"
     environment:
       TZ: Asia/Shanghai
-      HUB_MODE: "1"
-      HUB_SECRET_FILE: /hub/.shared-secret
+      FILM_INDEX_DATA: /data
       WEB_THREADS: "8"
     volumes:
-      - ${PAN_CONFIG_DIR:-./data/pan/config}:/app/config
-      - ${PAN_LOG_DIR:-./data/pan/log}:/app/log
-      - ./data/hub:/hub
-    mem_limit: ${PAN_MEMORY:-384m}
-    pids_limit: 96
-    logging: &logging
+      - ./data:/data
+      # Point these to the existing directories to retain accounts, tasks and media data.
+      - ${PAN_CONFIG_DIR:-./data/config}:/data/config
+      - ${PAN_LOG_DIR:-./data/log}:/data/log
+      - ${MEDIA_CONFIG_DIR:-./data/media}:/data/media
+      - ${MEDIA_ROOT:-./media}:/media
+    mem_limit: ${FILM_MEMORY:-512m}
+    pids_limit: 128
+    logging:
       driver: json-file
       options:
         max-size: "5m"
         max-file: "2"
-  media:
-    image: ghcr.io/dandan658/film-index-hub-media:latest
-    pull_policy: always
-    restart: unless-stopped
-    depends_on:
-      pan:
-        condition: service_healthy
-    environment:
-      TZ: Asia/Shanghai
-      HUB_MODE: "1"
-      HUB_SECRET_FILE: /hub/.shared-secret
-      NASTOOL_CONFIG: /config/config.yaml
-      NASTOOL_AUTO_UPDATE: "false"
-    volumes:
-      - ${MEDIA_CONFIG_DIR:-./data/media}:/config
-      - ${MEDIA_ROOT:-./media}:/media
-      - ./data/hub:/hub:ro
-    mem_limit: ${MEDIA_MEMORY:-384m}
-    pids_limit: 96
-    healthcheck:
-      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:3000/profile-info', timeout=3)"]
-      interval: 15s
-      timeout: 5s
-      start_period: 45s
-      retries: 6
-    logging: *logging
-  gateway:
-    image: ghcr.io/dandan658/film-index-hub:latest
-    pull_policy: always
-    restart: unless-stopped
-    depends_on:
-      pan:
-        condition: service_healthy
-      media:
-        condition: service_healthy
-    ports:
-      - "18520:80"
-    environment:
-      HUB_SECRET_FILE: /hub/.shared-secret
-      NGINX_WORKER_PROCESSES_AUTOTUNE: ""
-    volumes:
-      - ./data/hub:/hub:ro
-    mem_limit: 64m
-    pids_limit: 32
-    logging: *logging
+
