@@ -44,4 +44,14 @@ class HubIdentityTests(unittest.TestCase):
         client=app.test_client();self.assertEqual(client.get('/library').status_code,401)
         headers={'X-Hub-Token':'a'*64,'X-Hub-User':base64.urlsafe_b64encode(b'admin').decode()}
         self.assertEqual(client.get('/users',headers=headers).status_code,403);self.assertEqual(client.get('/library',headers=headers).status_code,200)
+    def test_file_browser_does_not_connect_to_pt_clients(self):
+        import ast
+        tree=ast.parse((ROOT/'media/web/main.py').read_text(encoding='utf8'))
+        function=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='mediafile')
+        function.decorator_list=[]
+        args=type('Args',(),{'get':lambda self,name: None})()
+        scope={'request':type('Request',(),{'args':args})(),'render_template':lambda name,**kwargs:kwargs}
+        exec(compile(ast.fix_missing_locations(ast.Module(body=[function],type_ignores=[])),'mediafile','exec'),scope)
+        self.assertEqual(scope['mediafile']()['Dir'],'/media')
+
 if __name__=='__main__':unittest.main()

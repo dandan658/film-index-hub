@@ -1,6 +1,6 @@
 {
   "version": "2.0.0",
-  "local_identity_tests": 4,
+  "local_identity_tests": 5,
   "local_media_tests": 13,
   "frontend_build": "passed",
   "frontend_typecheck": "passed",

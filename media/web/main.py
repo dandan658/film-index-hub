@@ -390,18 +390,8 @@ def unidentification():
 @App.route('/mediafile', methods=['POST', 'GET'])
 @login_required
 def mediafile():
-    download_dirs = Downloader().get_download_visit_dirs()
-    if download_dirs:
-        try:
-            DirD = os.path.commonpath(download_dirs).replace("\\", "/")
-        except Exception as err:
-            print(str(err))
-            DirD = "/"
-    else:
-        DirD = "/"
-    DirR = request.args.get("dir")
-    return render_template("rename/mediafile.html",
-                           Dir=DirR or DirD)
+    # Media browsing must never initialize former PT download clients.
+    return render_template('rename/mediafile.html', Dir=request.args.get('dir') or '/media')
 
 
 # 基础设置页面
