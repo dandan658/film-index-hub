@@ -82,5 +82,6 @@ def main():
     signal.signal(signal.SIGTERM, stop)
     signal.signal(signal.SIGINT, stop)
     print('Film Index 3.0.0: one application, one process, port 5000', flush=True)
-    serve(app, host='0.0.0.0', port=5000, threads=int(os.environ.get('WEB_THREADS', '8')), channel_timeout=60)
+    from film_index.subscriptions.server_runtime import server_options
+    serve(app, **server_options(5000))
 

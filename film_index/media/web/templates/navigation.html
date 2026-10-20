@@ -5,7 +5,7 @@
 <html lang="en">
 <head>
   {{ HEAD.meta_link() }}
-  <title>Film and Television Index - 媒体整理</title>
+  <title>Film Index - 媒体整理</title>
   <!-- CSS files -->
   <link href="../static/css/font-awesome.min.css" rel="stylesheet">
   <link href="../static/css/tabler.min.css" rel="stylesheet"/>
@@ -2134,12 +2134,7 @@
       refresh_message("");
     {% endif %}
 
-    {% if not TMDBFlag %}
-      // 检查tmdb配置
-      show_fail_modal("请先在媒体设置中配置 TMDB API Key，才能使用影片识别和刮削。", function () {
-        navmenu('basic');
-      });
-    {% endif %}
+
 
   });
 </script>

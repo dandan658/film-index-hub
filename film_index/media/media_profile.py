@@ -5,7 +5,7 @@ Removed acquisition features cannot be entered through old URLs or commands.
 """
 import json
 
-PRODUCT_NAME = 'Film and Television Index'
+PRODUCT_NAME = 'Film Index'
 PROFILE_VERSION = 'v3.0.0'
 PERMISSIONS = ('媒体整理', '服务', '系统设置')
 REMOVED_PAGES = frozenset(('index', 'search', 'movie_rss', 'tv_rss', 'rss_history', 'rss_calendar',
@@ -80,7 +80,7 @@ def install(app):
 
     @app.route('/project-source.zip')
     def film_index_source():
-        return send_file('/opt/film-index/source.zip', as_attachment=True, download_name='Film-and-Television-Index-source.zip')
+        return send_file('/opt/film-index/source.zip', as_attachment=True, download_name='Film-Index-source.zip')
 
     @app.route('/profile-info')
     def film_index_profile():

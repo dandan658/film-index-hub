@@ -11,6 +11,9 @@
     </div>
   </div>
 </div>
+{% if not Config.app.rmt_tmdbkey %}
+<div class="container-xl"><div class="alert alert-info" role="status">配置 TMDB API Key 后可识别影片并刮削资料；文件管理和目录设置可以直接使用。</div></div>
+{% endif %}
 <!-- 业务页面代码 -->
 <div class="page-body">
   <div class="container-xl">
