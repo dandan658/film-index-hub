@@ -49,6 +49,8 @@ def check_pages():
 
 
 if '--after-restart' not in sys.argv:
+    status, compressed = call('/login', anonymous=True, headers={'Accept-Encoding':'gzip'})
+    assert status == 200 and compressed[:2] == b'\x1f\x8b', 'Single server must retain gzip without a gateway'
     assert call('/media-engine/mediafile', anonymous=True)[0] == 401
     assert call('/media-engine/mediafile', anonymous=True, headers={'X-Hub-Token':'fake','X-Hub-User':'YWRtaW4='})[0] == 401
     status, body = call('/api/auth/login', {'username':'existing-owner','password':'ci-existing-password'})
