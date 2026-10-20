@@ -9,10 +9,12 @@ from watchdog.observers import Observer
 def watch_configuration():
     from film_index.media.config import Config
     from film_index.media.app.utils.commons import INSTANCES
+    from film_index.media.app.db import database_task
     from film_index.media.app.scheduler import restart_scheduler
     from film_index.media.app.sync import restart_monitor
     guard = Lock()
 
+    @database_task
     def reload():
         with guard:
             Config().init_config()

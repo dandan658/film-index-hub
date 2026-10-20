@@ -6,6 +6,7 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 
 BASE = 'http://127.0.0.1:18520'
 jar = http.cookiejar.LWPCookieJar('/tmp/film-index-cookies')
@@ -29,10 +30,13 @@ def call(path, data=None, anonymous=False, form=False, headers=None):
 
 def check_pages():
     for page in ('mediafile','unidentification','history','tmdbcache','service','basic','library','directorysync','notification','customwords','mediaserver','subtitle'):
+        print('Checking media page:', page, flush=True)
         status, body = call('/media-engine/' + page)
         assert status == 200, (page, status, body[:400])
         if page == 'history':
             assert b'existing-media-history' in body
+        if page == 'tmdbcache':
+            assert b'existing-cache-title' in body
     main = json.loads(call('/api/system/architecture')[1])
     media = json.loads(call('/media-engine/profile-info')[1])
     assert main['process_id'] == media['process_id'] == 1
@@ -56,6 +60,11 @@ if '--after-restart' not in sys.argv:
     status, body = call('/api/auth/login', {'username':'existing-owner','password':'ci-existing-password'})
     assert status == 200 and json.loads(body)['success'], body
     check_pages()
+    cookies = '; '.join(cookie.name + '=' + cookie.value for cookie in jar)
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        statuses = list(pool.map(lambda _: call('/media-engine/history', anonymous=True, headers={'Cookie':cookies})[0], range(24)))
+    assert statuses == [200] * 24, statuses
+    print('PASS: 24 media database requests across 8 concurrent workers complete without exhausting connections')
     tasks = json.loads(call('/api/tasks')[1])['tasks']
     assert tasks[0]['task_uid'] == 'existing-task-uid'
     status, body = call('/media-engine/do', {'cmd':'add_or_edit_sync_path', 'data':json.dumps({'from':'/media/source','to':'/media/destination','syncmod':'copy','rename':False,'enabled':False})}, form=True)

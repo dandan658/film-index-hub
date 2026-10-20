@@ -7,6 +7,7 @@ from apscheduler.executors.pool import ThreadPoolExecutor
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from film_index.media import log
+from film_index.media.app.db import database_task
 from film_index.media.app.helper import MetaHelper
 from film_index.media.app.mediaserver import MediaServer
 from film_index.media.app.sync import Sync
@@ -38,12 +39,12 @@ class Scheduler:
         if self._media and self._media.get('mediasync_interval'):
             try:
                 hours = float(self._media['mediasync_interval'])
-                if hours > 0: self.SCHEDULER.add_job(MediaServer().sync_mediaserver, 'interval', hours=hours)
+                if hours > 0: self.SCHEDULER.add_job(database_task(MediaServer().sync_mediaserver), 'interval', hours=hours)
             except (ValueError, TypeError):
                 log.warn('媒体库同步周期无效，跳过该服务')
-        self.SCHEDULER.add_job(MetaHelper().save_meta_data, 'interval', seconds=METAINFO_SAVE_INTERVAL)
-        self.SCHEDULER.add_job(Sync().transfer_mon_files, 'interval', seconds=SYNC_TRANSFER_INTERVAL)
-        self.SCHEDULER.add_job(MetaHelper().delete_unknown_meta, 'interval', hours=META_DELETE_UNKNOWN_INTERVAL)
+        self.SCHEDULER.add_job(database_task(MetaHelper().save_meta_data), 'interval', seconds=METAINFO_SAVE_INTERVAL)
+        self.SCHEDULER.add_job(database_task(Sync().transfer_mon_files), 'interval', seconds=SYNC_TRANSFER_INTERVAL)
+        self.SCHEDULER.add_job(database_task(MetaHelper().delete_unknown_meta), 'interval', hours=META_DELETE_UNKNOWN_INTERVAL)
         self.SCHEDULER.start()
 
     def stop_service(self):

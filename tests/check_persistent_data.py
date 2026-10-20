@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 import sqlite3
 import sys
+import hashlib
 from film_index.subscriptions.task_history import TaskHistory
 from film_index.bootstrap import prepare
 
@@ -11,6 +12,10 @@ assert value['auth']['users'] == 'existing-owner'
 assert value['auth']['password'] == 'ci-existing-password'
 assert value['baidu']['tasks'][0]['task_uid'] == 'existing-task-uid'
 assert value['tmdb']['fixture_marker'] == 'preserve-tmdb'
+from ruamel.yaml import YAML
+media_config = YAML().load((root / 'media/config.yaml').read_text(encoding='utf8'))
+assert media_config['app']['rmt_tmdbkey'] == 'ci-media-key-preserved'
+assert hashlib.sha256((root / 'media/tmdb.dat').read_bytes()).hexdigest() == (root / 'config/.ci-cache-hash').read_text()
 memory = TaskHistory('existing-task-uid', value['baidu']['tasks'][0]['url'])
 assert memory.contains({'fs_id': 'moved-renamed-source-id', 'size': 1234, 'md5': 'fixture-md5'})
 with sqlite3.connect(root / 'media/user.db') as db:

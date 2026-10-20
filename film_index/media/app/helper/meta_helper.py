@@ -11,6 +11,14 @@ from film_index.media.config import Config
 
 lock = RLock()
 
+
+class LegacyMediaCache(pickle.Unpickler):
+    """Read existing cached enums after moving the media code into this package."""
+    def find_class(self, module, name):
+        if module == 'app' or module.startswith('app.'):
+            module = 'film_index.media.' + module
+        return super().find_class(module, name)
+
 CACHE_EXPIRE_TIMESTAMP_STR = "cache_expire_timestamp"
 EXPIRE_TIMESTAMP = 7 * 24 * 3600
 
@@ -141,7 +149,7 @@ class MetaHelper(object):
         try:
             if os.path.exists(path):
                 with open(path, 'rb') as f:
-                    data = pickle.load(f)
+                    data = LegacyMediaCache(f).load()
                 return data
             return {}
         except Exception as e:

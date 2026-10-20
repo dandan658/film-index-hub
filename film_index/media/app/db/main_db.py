@@ -16,7 +16,7 @@ _Engine = create_engine(
     pool_pre_ping=True,
     pool_size=4,
     pool_recycle=60 * 10,
-    max_overflow=0
+    max_overflow=8
 )
 _Session = scoped_session(sessionmaker(bind=_Engine,
                                        autoflush=True,

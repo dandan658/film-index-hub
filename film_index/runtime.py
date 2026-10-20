@@ -46,7 +46,11 @@ def create_app(data_dir=None, start_services=True):
                 'process_id': os.getpid(), 'application_id': id(current_app._get_current_object()), 'features': ['subscriptions', 'media'],
                 'gateway': False}
 
-    from film_index.media.app.db import init_db, update_db, init_data
+    from film_index.media.app.db import init_db, update_db, init_data, release_sessions
+
+    @app.teardown_appcontext
+    def release_request_database_sessions(error=None):
+        release_sessions()
     from film_index.media.check_config import update_config
     init_db()
     update_db()
@@ -72,6 +76,7 @@ def create_app(data_dir=None, start_services=True):
         atexit.register(shutdown)
         app.extensions['film_index_shutdown'] = shutdown
     app.extensions['film_index_initialized'] = True
+    release_sessions()
     mark_started(root)
     return app
 

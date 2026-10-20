@@ -12,6 +12,26 @@ from .models import Base
 from .main_db import _Engine
 
 
+def release_sessions():
+    """Return thread-local connections at HTTP/job boundaries."""
+    from .main_db import _Session as main_sessions
+    from .media_db import _Session as media_sessions
+    main_sessions.remove()
+    media_sessions.remove()
+
+
+def database_task(function):
+    from functools import wraps
+
+    @wraps(function)
+    def run(*args, **kwargs):
+        try:
+            return function(*args, **kwargs)
+        finally:
+            release_sessions()
+    return run
+
+
 def init_db():
     """
     初始化数据库

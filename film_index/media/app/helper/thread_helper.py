@@ -15,4 +15,5 @@ class ThreadHelper:
         pass
 
     def start_thread(self, func, kwargs):
-        self.executor.submit(func, *kwargs)
+        from film_index.media.app.db import database_task
+        self.executor.submit(database_task(func), *kwargs)
