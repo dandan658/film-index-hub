@@ -13,7 +13,7 @@ RUN python -m pip install --no-cache-dir setuptools==69.5.1 wheel==0.43.0 Cython
     && python -m pip wheel --no-build-isolation --no-cache-dir --wheel-dir /wheels -r requirements.txt
 
 FROM python:3.10-slim-bookworm
-ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 TZ=Asia/Shanghai FILM_INDEX_DATA=/data
+ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 TZ=Asia/Shanghai FILM_INDEX_DATA=/data PYTHONPATH=/opt/film-index
 WORKDIR /opt/film-index
 RUN apt-get update && apt-get install -y --no-install-recommends tzdata ca-certificates curl ffmpeg rclone chromium chromium-driver \
     && rm -rf /var/lib/apt/lists/*

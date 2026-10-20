@@ -44,6 +44,8 @@ def check_pages():
     status, body = call('/media-engine/?next=mediafile')
     assert status == 200 and b'fti-hub-embedded' in body
     assert call('/project-source.zip')[0] == 200
+    status, listing = call('/dirlist', {'dir':'/media/', 'filter':'HIDE_FILES_FILTER'}, form=True)
+    assert status == 200 and b'source' in listing and b'destination' in listing
 
 
 if '--after-restart' not in sys.argv:

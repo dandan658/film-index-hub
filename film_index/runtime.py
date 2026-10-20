@@ -24,6 +24,10 @@ def create_app(data_dir=None, start_services=True):
     app.register_blueprint(bp, url_prefix='/media-engine')
     app.register_blueprint(apiv1_bp, url_prefix='/api/v1')
     app.add_url_rule('/dirlist', 'media_directory', dirlist, methods=['POST'])
+    # Keep existing media-server webhook paths and their configured IP checks.
+    from film_index.media.web.main import emby_webhook, jellyfin_webhook, plex_webhook
+    for path, view in (('/emby', emby_webhook), ('/jellyfin', jellyfin_webhook), ('/plex', plex_webhook)):
+        app.add_url_rule(path, 'media_event_' + path[1:], view, methods=['POST'])
 
     from flask import send_from_directory, send_file, current_app
 

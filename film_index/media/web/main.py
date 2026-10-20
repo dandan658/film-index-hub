@@ -510,7 +510,6 @@ def plex_webhook():
     request_json = json.loads(request.form.get('payload', {}))
     log.debug("收到Plex Webhook报文：%s" % str(request_json))
     ThreadHelper().start_thread(WebhookEvent().plex_action, (request_json,))
-    ThreadHelper().start_thread(SpeedLimiter().plex_action, (request_json,))
     return 'Ok'
 
 
@@ -523,7 +522,6 @@ def jellyfin_webhook():
     request_json = request.get_json()
     log.debug("收到Jellyfin Webhook报文：%s" % str(request_json))
     ThreadHelper().start_thread(WebhookEvent().jellyfin_action, (request_json,))
-    ThreadHelper().start_thread(SpeedLimiter().jellyfin_action, (request_json,))
     return 'Ok'
 
 
@@ -536,7 +534,6 @@ def emby_webhook():
     request_json = json.loads(request.form.get('data', {}))
     log.debug("收到Emby Webhook报文：%s" % str(request_json))
     ThreadHelper().start_thread(WebhookEvent().emby_action, (request_json,))
-    ThreadHelper().start_thread(SpeedLimiter().emby_action, (request_json,))
     return 'Ok'
 
 
