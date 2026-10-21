@@ -80,7 +80,7 @@
         v-loading="loading"
         :data="filteredTasks"
         stripe
-        row-key="order"
+        row-key="task_uid"
         :key="tableKey"
         @selection-change="handleSelectionChange"
         class="desktop-table"
@@ -224,7 +224,7 @@
         </div>
         <div 
           v-for="task in filteredTasks" 
-          :key="task.order"
+          :key="task.task_uid || task.order"
           class="task-card"
         >
           <div class="task-card-body">

@@ -22,10 +22,10 @@ def replacement(value):
 def task_options(data, previous=None):
     previous = previous or {}
     result = {key: data.get(key, previous.get(key, default)) for key, default in (
-        ('media_type', 'other'), ('flatten', False), ('auto_rename', False), ('season', 1), ('season_folders', []), ('force_first_season', False), ('tmdb', None))}
+        ('media_type', 'other'), ('flatten', False), ('auto_rename', False), ('season', 1), ('season_folders', []), ('force_first_season', False), ('tmdb_auto_season', False), ('season_directories', False), ('tmdb', None))}
     if result['media_type'] not in ('other', 'movie', 'tv'):
         raise ValueError('资源类型必须为普通文件、电影或电视剧')
-    for key in ('flatten', 'auto_rename', 'force_first_season'):
+    for key in ('flatten', 'auto_rename', 'force_first_season', 'tmdb_auto_season', 'season_directories'):
         if not isinstance(result[key], bool):
             raise ValueError(f'{key} 必须为布尔值')
     if isinstance(result['season'], bool) or not isinstance(result['season'], int) or not 1 <= result['season'] <= 999:
@@ -69,6 +69,13 @@ def task_options(data, previous=None):
         compiled = re.compile(pattern)
         if replace:
             compiled.sub(replacement(replace), '')
+    if result['tmdb_auto_season']:
+        if result['force_first_season']:
+            raise ValueError('强制第一季与 TMDB 自动分季不能同时开启')
+        if result['media_type'] != 'tv' or not result['auto_rename'] or result['tmdb'] is None:
+            raise ValueError('TMDB 自动分季需要选择电视剧、开启自动命名并绑定 TMDB 资料')
+    if result['season_directories'] and (result['media_type'] != 'tv' or not result['auto_rename']):
+        raise ValueError('按季创建目录需要选择电视剧并开启自动命名')
     return result
 
 
@@ -206,6 +213,25 @@ def destination_name(path, task, source_path=None):
             detected_season, number = parsed
             # An explicit per-directory rule takes precedence over filename tags.
             season = season if force_first or matched_rule or detected_directory else detected_season
+            if task.get('tmdb_auto_season'):
+                counts = task.get('_tmdb_seasons') or {}
+                stem = posixpath.splitext(posixpath.basename(path))[0]
+                explicit = re.search(r'(?i)(?<![a-z0-9])S(\d{1,3})[ ._-]*E\d{1,4}(?!\d)', stem)
+                filename_season = int(explicit[1]) if explicit else season_in_folder(stem)
+                evidence = [value for value in (matched_rule['season'] if matched_rule else None, detected_directory[1] if detected_directory else None, filename_season) if value is not None]
+                if len(set(evidence)) > 1:
+                    return False, path, f'季数信息冲突，待确认并跳过：{path}'
+                if evidence:
+                    season = evidence[0]
+                else:
+                    regular = [key for key in counts if key > 0]
+                    if len(regular) != 1:
+                        return False, path, f'TMDB 存在多季且源文件未明确季数，待确认并跳过：{path}'
+                    season = regular[0]
+                if season not in counts or not 1 <= number <= counts[season]:
+                    return False, path, f'季数或集数超出 TMDB 资料，待确认并跳过：{path}'
+            if task.get('season_directories'):
+                mapped_parent = f'Season {season:02d}'
             filename = f'{title} - S{season:02d}E{number:02d}'
         else:
             filename = title
@@ -217,4 +243,5 @@ def destination_name(path, task, source_path=None):
         if not mapped_parent and task['media_type'] == 'tv' and not task.get('flatten'):
             mapped_parent = f'Season {season:02d}'
         renamed = posixpath.join(mapped_parent, filename + ext)
-    return True, posixpath.basename(renamed) if task.get('flatten') else renamed, ''
+    flatten = task.get('flatten') and not (task.get('season_directories') and task.get('media_type') == 'tv' and task.get('auto_rename'))
+    return True, posixpath.basename(renamed) if flatten else renamed, ''

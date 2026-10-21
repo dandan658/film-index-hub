@@ -178,7 +178,8 @@ def _format_sse(event_name, payload):
 def _build_task_stream_snapshot(task):
     _ensure_task_runtime_state()
     task_order = task.get('order') if task else None
-    logs = list(app.task_logs.get(task_order, [])[-300:]) if task_order else []
+    log_key = (task.get('task_uid') or task_order) if task else None
+    logs = list(app.task_logs.get(log_key, [])[-300:]) if log_key else []
     return {
         'task': task,
         'logs': logs,
@@ -205,9 +206,11 @@ def _append_task_log(task_order, message, level='INFO', task_uid=None):
         'message': message,
         'task_order': task_order
     }
-    app.task_logs.setdefault(task_order, []).append(log_entry)
-    if len(app.task_logs[task_order]) > 1000:
-        del app.task_logs[task_order][:-1000]
+    log_entry['task_uid'] = stable_uid
+    log_key = stable_uid or task_order
+    app.task_logs.setdefault(log_key, []).append(log_entry)
+    if len(app.task_logs[log_key]) > 1000:
+        del app.task_logs[log_key][:-1000]
     if stable_uid:
         _publish_task_event(stable_uid, 'log', log_entry)
     return log_entry
@@ -391,11 +394,9 @@ def get_task_status(task_id):
     """获取单个任务状态"""
     if not storage:
         return jsonify({'success': False, 'message': '存储未初始化'})
-    tasks = storage.list_tasks()
-    # 按 order 排序，确保 task_id 对应正确的任务
-    tasks.sort(key=lambda x: x.get('order', float('inf')))
-    if 0 <= task_id < len(tasks):
-        return jsonify({'success': True, 'status': tasks[task_id]})
+    task = _resolve_request_task(task_ref=request.args.get('task_uid'), task_id=task_id)
+    if task:
+        return jsonify({'success': True, 'status': task})
     return jsonify({'success': False, 'message': '任务不存在'})
 
 @app.route('/api/tasks/running', methods=['GET'])
@@ -625,6 +626,8 @@ def _resolve_request_task(task_ref=None, task_id=None, tasks=None):
     task = storage.resolve_task(task_ref)
     if task is not None:
         return task
+    if task_ref is not None:
+        return None
 
     if task_id is None:
         return None
@@ -691,7 +694,7 @@ def execute_task():
     _publish_task_status(task_order, task_uid)
 
     # 清理旧的任务日志，避免显示历史日志
-    app.task_logs[task_order] = []
+    app.task_logs[task_uid or task_order] = []
     _append_task_log(task_order, f'开始执行任务: {task_name}', task_uid=task_uid)
     
     # 立即返回响应，然后异步执行任务
@@ -1754,7 +1757,7 @@ def reset_backend_password(username):
 @handle_api_error
 def check_version():
     if True:
-        return jsonify({'success': True, 'version': 'v3.0.2', 'latest_version': 'v3.0.2', 'has_update': False, 'release_notes': '统一订阅与媒体整理工作台'})
+        return jsonify({'success': True, 'version': 'v3.0.3', 'latest_version': 'v3.0.3', 'has_update': False, 'release_notes': '统一订阅与媒体整理工作台'})
     """检查最新版本"""
     try:
         import feedparser
@@ -1981,7 +1984,7 @@ def cleanup_old_task_logs():
                 # 查找对应的任务
                 task_found = False
                 for task in tasks:
-                    if task.get('order') == task_order:
+                    if (task.get('task_uid') or task.get('order')) == task_order:
                         task_found = True
                         # 如果任务不是运行状态，且日志有内容，检查最后一条日志的时间
                         if task.get('status') != 'running' and app.task_logs[task_order]:
@@ -2027,12 +2030,10 @@ def get_task_log(task_id):
         if not storage:
             return jsonify({'success': False, 'message': '存储未初始化'})
 
-        tasks = storage.list_tasks()
-        if not tasks or task_id >= len(tasks):
-            return jsonify({'success': True, 'logs': []})
-
-        # 获取真实的task order
-        task_order = tasks[task_id].get('order')
+        task = _resolve_request_task(task_ref=request.args.get('task_uid'), task_id=task_id)
+        if not task:
+            return jsonify({'success': False, 'message': '任务不存在', 'logs': []})
+        task_order = task.get('task_uid') or task.get('order')
 
         # 定期清理旧日志（每100次请求清理一次）
         _ensure_task_runtime_state()

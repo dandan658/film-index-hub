@@ -64,6 +64,13 @@ def transfer_organized(storage, client, files, roots, share_url, save_dir, task,
         finally:
             if temporary.exists():
                 temporary.unlink()
+    if task.get('tmdb_auto_season'):
+        from film_index.subscriptions.tmdb_service import tv_seasons
+        from film_index.subscriptions.media_rules import task_options
+        task_options(task)  # Never allow old/API-written conflicting options to execute.
+        task = dict(task)
+        task['_tmdb_seasons'] = tv_seasons(storage.config.get('tmdb', {}), task['tmdb']['id'])
+        report('info', '已读取 TMDB 季集资料；无法唯一确定的文件将跳过，不套用兜底季数')
     single_folder = len(roots) == 1 and bool(field(roots[0], 'is_dir', False))
     planned = []
     seen_ids = set()

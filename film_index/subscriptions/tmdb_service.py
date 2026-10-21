@@ -80,3 +80,38 @@ def search(config, query, media_type):
                         'vote_average': item.get('vote_average', 0),
                         'save_dir': posixpath.join(default_root(config.get('default_root', '/001')), display_name)})
     return results
+import time
+from collections import OrderedDict
+from threading import Lock
+import hashlib
+
+_season_cache = OrderedDict()
+_season_lock = Lock()
+
+def tv_seasons(config, tv_id):
+    token = credential(config)
+    if not token:
+        raise ValueError('TMDB 自动分季需要先配置 TMDB 凭据')
+    key = (int(tv_id), hashlib.sha256(token.encode()).hexdigest())
+    with _season_lock:
+        cached = _season_cache.get(key)
+        if cached and cached[0] > time.monotonic():
+            return dict(cached[1])
+    params = {'language': 'zh-CN'}
+    headers = {'Accept': 'application/json'}
+    if re.fullmatch(r'[0-9a-fA-F]{32}', token): params['api_key'] = token
+    else: headers['Authorization'] = 'Bearer ' + token.removeprefix('Bearer ')
+    req = urllib.request.Request(f'https://api.themoviedb.org/3/tv/{int(tv_id)}?' + urllib.parse.urlencode(params), headers=headers)
+    try:
+        with urllib.request.urlopen(req, timeout=8) as response:
+            data = json.loads(response.read(2_000_000))
+        if data.get('id') != int(tv_id): raise ValueError('identity mismatch')
+        seasons = {int(s['season_number']): int(s['episode_count']) for s in data.get('seasons', []) if isinstance(s.get('season_number'), int) and s['season_number'] >= 0 and isinstance(s.get('episode_count'), int) and s['episode_count'] > 0}
+        if not seasons: raise ValueError('empty seasons')
+    except (OSError, ValueError, TypeError, KeyError):
+        raise ValueError('无法取得有效 TMDB 季集资料，本次未转存，请检查凭据及网络后重试') from None
+    with _season_lock:
+        _season_cache[key] = (time.monotonic() + 21600, seasons)
+        _season_cache.move_to_end(key)
+        while len(_season_cache) > 32: _season_cache.popitem(last=False)
+    return dict(seasons)

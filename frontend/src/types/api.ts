@@ -15,6 +15,8 @@ export interface Task {
   auto_rename?: boolean
   season?: number
   force_first_season?: boolean
+  tmdb_auto_season?: boolean
+  season_directories?: boolean
   tmdb?: { id: number; media_type: string; title: string; year: string } | null
   order: number
   task_uid?: string
@@ -49,6 +51,8 @@ export interface CreateTaskRequest {
   auto_rename?: boolean
   season?: number
   force_first_season?: boolean
+  tmdb_auto_season?: boolean
+  season_directories?: boolean
   tmdb?: { id: number; media_type: string; title: string; year: string } | null
   url: string
   save_dir: string
@@ -67,6 +71,8 @@ export interface UpdateTaskRequest {
   auto_rename?: boolean
   season?: number
   force_first_season?: boolean
+  tmdb_auto_season?: boolean
+  season_directories?: boolean
   tmdb?: { id: number; media_type: string; title: string; year: string } | null
   url?: string
   save_dir?: string

@@ -191,27 +191,28 @@ export const useTaskStore = defineStore('tasks', () => {
   }
 
   const executeTask = async (taskId: number) => {
+    const task = tasks.value.find(t => t.order - 1 === taskId)
+    if (!task) throw new Error('任务不存在，请刷新后重试')
     try {
-      // 更新任务状态为运行中
-      const task = tasks.value.find(t => t.order === taskId)
+      // Keep the selected object even if polling reorders the list.
       if (task) {
         task.status = TASK_STATUS.RUNNING
         task.message = '正在执行...'
       }
 
-      const response = await apiService.executeTask(taskId)
+      const response = await apiService.executeTask(taskId, task?.task_uid)
       if (!response.success) {
         throw new Error(response.message || '执行任务失败')
       }
 
-      if (task && response.task_uid) {
-        task.task_uid = response.task_uid
+      // A response may never replace another row's stable identity.
+      if (task?.task_uid && response.task_uid && task.task_uid !== response.task_uid) {
+        throw new Error('任务标识不匹配，请刷新后重试')
       }
 
       return response
     } catch (err) {
-      // 恢复任务状态
-      const task = tasks.value.find(t => t.order === taskId)
+      // Restore only the selected identity after a failed request.
       if (task) {
         task.status = TASK_STATUS.ERROR
         task.message = getErrorMessage(err)
@@ -226,14 +227,14 @@ export const useTaskStore = defineStore('tasks', () => {
     try {
       // 更新选中任务状态为运行中
       taskIds.forEach(taskId => {
-        const task = tasks.value.find(t => t.order === taskId)
+        const task = tasks.value.find(t => t.order - 1 === taskId)
         if (task) {
           task.status = TASK_STATUS.RUNNING
           task.message = '正在执行...'
         }
       })
 
-      const response = await apiService.executeBatchTasks(taskIds)
+      const response = await apiService.executeBatchTasks(taskIds, taskIds.map(id => tasks.value.find(t => t.order - 1 === id)?.task_uid).filter((uid): uid is string => !!uid))
       if (response.success) {
         return response.results || response.data?.results
       } else {
@@ -242,7 +243,7 @@ export const useTaskStore = defineStore('tasks', () => {
     } catch (err) {
       // 恢复任务状态
       taskIds.forEach(taskId => {
-        const task = tasks.value.find(t => t.order === taskId)
+        const task = tasks.value.find(t => t.order - 1 === taskId)
         if (task) {
           task.status = TASK_STATUS.ERROR
           task.message = getErrorMessage(err)

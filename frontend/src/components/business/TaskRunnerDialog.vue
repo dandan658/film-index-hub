@@ -262,6 +262,7 @@ const appendLog = async (logEntry: TaskLogEntry) => {
 
 const applyTaskState = (taskData: Partial<Task> | null | undefined) => {
   if (!taskData) return
+  if (props.task?.task_uid && taskData.task_uid && props.task.task_uid !== taskData.task_uid) return
 
   if (taskData.status) {
     currentStatus.value = taskData.status
@@ -362,7 +363,7 @@ const refreshLogs = async ({ showLoading = false }: { showLoading?: boolean } = 
   }
 
   try {
-    const response = await apiService.getTaskLog(props.taskId)
+    const response = await apiService.getTaskLog(props.taskId, props.task?.task_uid)
 
     if (sessionId !== pollSessionId || currentReqId !== logsRequestId) {
       return logs.value
@@ -389,7 +390,7 @@ const checkTaskStatus = async () => {
   const sessionId = pollSessionId
 
   try {
-    const response = await apiService.getTaskStatus(props.taskId)
+    const response = await apiService.getTaskStatus(props.taskId, props.task?.task_uid)
 
     if (sessionId !== pollSessionId) {
       return null
@@ -602,7 +603,7 @@ const handleClose = (done?: unknown) => {
   if (typeof done === 'function') done()
 }
 
-watch(() => props.modelValue, (newVal) => {
+watch(() => [props.modelValue, props.task?.task_uid] as const, ([newVal]) => {
   if (newVal && props.task) {
     startMonitoring()
   } else {

@@ -518,6 +518,7 @@
   "scripts/smoke-test.sh",
   "scripts/source_bundle.py",
   "scripts/test_single_application.py",
+  "scripts/test_task_identity.cjs",
   "tests/check_persistent_data.py",
   "tests/create_legacy_fixture.py",
   "tests/subscriptions/test_backend_accounts.py",
@@ -528,7 +529,9 @@
   "tests/subscriptions/test_share_metadata.py",
   "tests/subscriptions/test_storage_media.py",
   "tests/subscriptions/test_task_history.py",
+  "tests/subscriptions/test_task_identity.py",
   "tests/subscriptions/test_tmdb.py",
+  "tests/subscriptions/test_tmdb_seasons.py",
   "tests/subscriptions/test_web_responsiveness.py",
   "tests/test_backup.py"
 ]

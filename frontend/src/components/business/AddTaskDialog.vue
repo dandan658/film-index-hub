@@ -35,20 +35,28 @@
       </el-form-item>
       <el-form-item label="合并子目录">
         <el-switch v-model="form.flatten" />
-        <div class="form-help">开启：各级文件统一放入保存目录。关闭：保留子目录结构，仍支持文件重命名。</div>
+        <div class="form-help">开启：合并其他子目录；同时开启按季创建目录时，文件归入对应 Season 目录。关闭：保留源子目录结构。</div>
+      </el-form-item>
+      <el-form-item v-if="form.media_type === 'tv'" label="按季创建目录">
+        <el-switch v-model="form.season_directories" @change="onSeasonDirectoriesChange" />
+        <div class="form-help">合并其他子目录后仍按季保存：影片目录/Season 01/文件。目录和文件名使用同一季数。</div>
       </el-form-item>
       <el-form-item label="自动重命名">
-        <el-switch v-model="form.auto_rename" :disabled="form.media_type === 'other'" />
+        <el-switch v-model="form.auto_rename" :disabled="form.media_type === 'other' || form.tmdb_auto_season || form.season_directories" />
         <div class="form-help">根据自定义任务名称整理视频和字幕；无法识别集数会提示并跳过，不会按 4K 等画质数字误命名。</div>
       </el-form-item>
+      <el-form-item v-if="form.media_type === 'tv'" label="TMDB 自动分季">
+        <el-switch v-model="form.tmdb_auto_season" @change="onTmdbSeasonChange" />
+        <div class="form-help">需绑定 TMDB 资料。核对明确季数和集数；仅有一季时自动匹配。多季无法唯一判断、资料冲突或超出范围时跳过并提示，不使用兜底季数。</div>
+      </el-form-item>
       <el-form-item v-if="form.media_type === 'tv'" label="统一第一季">
-        <el-switch v-model="form.force_first_season" />
+        <el-switch v-model="form.force_first_season" @change="onForceFirstSeasonChange" />
         <div class="form-help">开启：整个订阅统一使用第一季 S01，覆盖目录、文件名和手动规则中的季数。关闭：自动识别目录和文件名的季数。集数仍按原文件识别；同名文件自动区分，不覆盖。</div>
       </el-form-item>
-      <el-form-item v-if="form.media_type === 'tv' && form.auto_rename && !form.force_first_season" label="多季识别">
+      <el-form-item v-if="form.media_type === 'tv' && form.auto_rename && !form.force_first_season && !form.tmdb_auto_season" label="多季识别">
         <div class="form-help">自动识别各级目录中的第一季、第二季、第三季、Season 02、S03 等。优先使用手动目录规则，其次使用最近的季目录，再使用文件名中的 Sxx，最后才使用下方默认季数。目录中的季数会修正文件名里错误的 S01。</div>
       </el-form-item>
-      <el-form-item v-if="form.media_type === 'tv' && form.auto_rename && !form.force_first_season" label="兜底季数">
+      <el-form-item v-if="form.media_type === 'tv' && form.auto_rename && !form.force_first_season && !form.tmdb_auto_season" label="兜底季数">
         <el-input-number v-model="form.season" :min="1" :max="999" :precision="0" />
         <div class="form-help">仅在目录和文件名都未提供季数时使用，不会把整个订阅统一改成第一季。</div>
       </el-form-item>
@@ -63,7 +71,7 @@
       </el-form-item>
       <el-form-item v-if="form.media_type === 'tv'" label="分季目录">
         <div style="width: 100%">
-          <div class="form-help">源路径相对于分享顶层目录。每个子目录可单独设置季数和新目录名；开启统一第一季时，季数和季目录统一为 S01。合并时只使用季数，不创建季目录。001-090 等集数范围不会被误判为季数。</div>
+          <div class="form-help">源路径相对于分享顶层目录。每个子目录可单独设置季数和新目录名；开启统一第一季时，季数和季目录统一为 S01。合并时默认只使用季数；开启按季创建目录后仍创建 Season 目录。001-090 等集数范围不会被误判为季数。</div>
           <div v-for="(rule, index) in form.season_folders" :key="index" class="season-rule">
             <el-input v-model="rule.source" placeholder="源子目录，如 第一季 或 001-090" aria-label="源子目录" />
             <el-input-number v-model="rule.season" :min="1" :max="999" :precision="0" aria-label="对应季数" />
@@ -234,6 +242,8 @@ const form = reactive({
   auto_rename: true,
   season: 1,
   force_first_season: false,
+  tmdb_auto_season: false,
+  season_directories: false,
   tmdb: null as { id: number; media_type: string; title: string; year: string } | null,
   season_folders: [] as { source: string; season: number; name: string }[]
 })
@@ -279,11 +289,19 @@ const resetForm = () => {
   form.auto_rename = true
   form.season = 1
   form.force_first_season = false
+  form.tmdb_auto_season = false
+  form.season_directories = false
   form.tmdb = null
   form.season_folders = []
   pathNameSync.value = false
   formRef.value?.clearValidate()
 }
+
+const onSeasonDirectoriesChange = (value: string | number | boolean) => { if (value === true) form.auto_rename = true }
+const onTmdbSeasonChange = (value: string | number | boolean) => {
+  if (value === true) { form.force_first_season = false; form.auto_rename = true }
+}
+const onForceFirstSeasonChange = (value: string | number | boolean) => { if (value === true) form.tmdb_auto_season = false }
 
 const selectTmdb = (item: any) => {
   pathNameSync.value = false
@@ -420,6 +438,8 @@ const loadTaskData = (task: Task) => {
   form.auto_rename = task.auto_rename ?? false
   form.season = task.season || 1
   form.force_first_season = task.force_first_season ?? false
+  form.tmdb_auto_season = task.tmdb_auto_season ?? false
+  form.season_directories = task.season_directories ?? false
   form.tmdb = task.tmdb ? { ...task.tmdb } : null
   form.season_folders = (task.season_folders || []).map(rule => ({ ...rule }))
   
@@ -529,7 +549,7 @@ watch(() => form.url, (value) => {
 watch(() => form.media_type, (value) => {
   if (form.tmdb && form.tmdb.media_type !== value) form.tmdb = null
   if (value === 'other') form.auto_rename = false
-  if (value !== 'tv') form.season_folders = []
+  if (value !== 'tv') { form.season_folders = []; form.tmdb_auto_season = false; form.season_directories = false; form.force_first_season = false }
 })
 watch(() => form.name, (newName) => {
   if (pathNameSync.value && newName) {

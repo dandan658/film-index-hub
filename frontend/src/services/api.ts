@@ -25,12 +25,12 @@ export class ApiService {
     return httpClient.post('/api/task/delete', { task_id: taskId })
   }
 
-  async executeTask(taskId: number): Promise<ApiResponse<any>> {
-    return httpClient.post('/api/task/execute', { task_id: taskId })
+  async executeTask(taskId: number, taskUid?: string): Promise<ApiResponse<any>> {
+    return httpClient.post('/api/task/execute', { task_id: taskId, task_uid: taskUid })
   }
 
-  async executeBatchTasks(taskIds: number[]): Promise<ApiResponse<any>> {
-    return httpClient.post('/api/tasks/execute-all', { task_ids: taskIds })
+  async executeBatchTasks(taskIds: number[], taskUids?: string[]): Promise<ApiResponse<any>> {
+    return httpClient.post('/api/tasks/execute-all', taskUids?.length ? { task_uids: taskUids } : { task_ids: taskIds })
   }
 
   async deleteBatchTasks(taskIds: number[]): Promise<ApiResponse<void>> {
@@ -142,12 +142,12 @@ export class ApiService {
     return httpClient.get('/api/tasks/status')
   }
 
-  async getTaskStatus(taskId: number): Promise<ApiResponse<Task>> {
-    return httpClient.get(`/api/tasks/${taskId}/status`)
+  async getTaskStatus(taskId: number, taskUid?: string): Promise<ApiResponse<Task>> {
+    return httpClient.get(`/api/tasks/${taskId}/status${taskUid ? `?task_uid=${encodeURIComponent(taskUid)}` : ''}`)
   }
 
-  async getTaskLog(taskId: number): Promise<ApiResponse<any>> {
-    return httpClient.get(`/api/task/log/${taskId}`)
+  async getTaskLog(taskId: number, taskUid?: string): Promise<ApiResponse<any>> {
+    return httpClient.get(`/api/task/log/${taskId}${taskUid ? `?task_uid=${encodeURIComponent(taskUid)}` : ''}`)
   }
 
   // 认证相关API
