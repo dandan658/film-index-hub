@@ -478,9 +478,12 @@ class Scraper:
                             # 从视频文件生成缩略图
                             video_path = os.path.join(dir_path, file_name + file_ext)
                             log.info(f"【Scraper】正在生成缩略图：{video_path} ...")
-                            FfmpegHelper().get_thumb_image_from_video(video_path=video_path,
-                                                                      image_path=episode_thumb)
-                            log.info(f"【Scraper】缩略图生成完成：{episode_thumb}")
+                            generated = FfmpegHelper().get_thumb_image_from_video(video_path=video_path,
+                                                                                  image_path=episode_thumb)
+                            if generated:
+                                log.info(f"【Scraper】缩略图生成完成：{episode_thumb}")
+                            else:
+                                log.warn(f"【Scraper】缩略图生成失败或超过 15 秒，已跳过并继续整理：{video_path}")
 
         except Exception as e:
             ExceptionUtils.exception_traceback(e)
