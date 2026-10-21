@@ -287,7 +287,7 @@ const resetForm = () => {
 
 const selectTmdb = (item: any) => {
   pathNameSync.value = false
-  form.name = item.title
+  form.name = item.display_name || (item.year ? `${item.title} (${item.year})` : item.title)
   form.save_dir = item.save_dir
   form.tmdb = { id: item.id, media_type: item.media_type, title: item.title, year: item.year }
   formRef.value?.clearValidate(['name', 'save_dir'])

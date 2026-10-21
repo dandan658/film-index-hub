@@ -1,4 +1,4 @@
-from baidupcs_py.baidupcs import BaiduPCSApi
+from film_index.subscriptions.share_client import BaiduPCSApi, ShareMetadataUnavailable
 from baidupcs_py.baidupcs.errors import BaiduPCSError
 from loguru import logger
 import json
@@ -1203,7 +1203,7 @@ class BaiduStorage:
 
                 # 步骤1.1：获取分享文件列表并记录
                 logger.info("获取分享文件列表...")
-                shared_paths = self._shared_paths_with_retry(shared_url=share_url, client=temp_client)
+                shared_paths = self._shared_paths_with_retry(shared_url=share_url, client=temp_client, pwd=pwd)
                 if not shared_paths:
                     logger.error("获取分享文件列表失败")
                     if progress_callback:
@@ -1707,7 +1707,7 @@ class BaiduStorage:
             self._access_shared_with_retry(share_url, pwd)
 
             # 获取分享文件列表
-            shared_paths = self._shared_paths_with_retry(shared_url=share_url)
+            shared_paths = self._shared_paths_with_retry(shared_url=share_url, pwd=pwd)
             if not shared_paths:
                 return {'success': False, 'error': '获取分享文件列表失败'}
             
@@ -1764,12 +1764,19 @@ class BaiduStorage:
             client = self.client
         return client.access_shared(share_url, pwd, show_vcode=False)
 
-    @api_retry(max_retries=1, delay_range=(2, 3))
-    def _shared_paths_with_retry(self, shared_url, client=None):
-        """带重试功能的获取分享文件列表方法"""
+    def _shared_paths_with_retry(self, shared_url, client=None, pwd=None):
+        """Re-establish share access only for transient missing metadata."""
         if client is None:
             client = self.client
-        return client.shared_paths(shared_url=shared_url)
+        for attempt in range(3):
+            try:
+                return client.shared_paths(shared_url=shared_url)
+            except (ShareMetadataUnavailable, OSError):
+                if attempt == 2:
+                    raise ValueError('暂时无法读取百度分享文件列表，请稍后重试；若持续失败，请检查分享链接、提取码及网盘账号状态') from None
+                logger.info('分享页面资料尚未就绪，正在自动重新读取')
+                time.sleep(1 + attempt)
+                client.access_shared(shared_url, pwd, show_vcode=False)
 
     @api_retry(max_retries=1, delay_range=(2, 3))
     def _list_shared_paths_with_retry(self, path, uk, share_id, bdstoken, page=1, size=100, client=None):
@@ -1791,7 +1798,7 @@ class BaiduStorage:
 
             logger.debug("开始获取文件列表...")
             # 获取根目录文件列表
-            files = self._shared_paths_with_retry(shared_url=share_url)
+            files = self._shared_paths_with_retry(shared_url=share_url, pwd=pwd)
             
             # 用于存储所有文件
             all_files = []

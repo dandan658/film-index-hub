@@ -70,10 +70,13 @@ def search(config, query, media_type):
         if not title or not isinstance(item.get('id'), int):
             continue
         title = safe_name(title[:200])
+        year = str(item.get('first_air_date' if media_type == 'tv' else 'release_date') or '')[:4]
+        year = year if re.fullmatch(r'\d{4}', year) else ''
+        display_name = f'{title} ({year})' if year else title
         results.append({'id': item['id'], 'media_type': media_type, 'title': title,
                         'original_title': item.get('original_name' if media_type == 'tv' else 'original_title', ''),
-                        'year': str(item.get('first_air_date' if media_type == 'tv' else 'release_date') or '')[:4],
+                        'year': year, 'display_name': display_name,
                         'overview': str(item.get('overview') or '暂无简介')[:3000],
                         'vote_average': item.get('vote_average', 0),
-                        'save_dir': posixpath.join(default_root(config.get('default_root', '/001')), title)})
+                        'save_dir': posixpath.join(default_root(config.get('default_root', '/001')), display_name)})
     return results

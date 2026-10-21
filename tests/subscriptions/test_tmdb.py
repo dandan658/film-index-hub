@@ -52,8 +52,9 @@ class TmdbTests(unittest.TestCase):
     def test_search_type_credentials_and_directory(self, fetch):
         fetch.return_value.__enter__.return_value = io.BytesIO(json.dumps({'results': [{'id': 123, 'name': '牧神记', 'first_air_date': '2024-01-01', 'overview': '简介'}]}).encode())
         result = tmdb.search({'credential': 'fixture-token', 'default_root': '/001'}, '牧神记', 'tv')[0]
-        self.assertEqual(result['save_dir'], '/001/牧神记')
+        self.assertEqual(result['save_dir'], '/001/牧神记 (2024)')
         self.assertEqual(result['year'], '2024')
+        self.assertEqual(result['display_name'], '牧神记 (2024)')
         request = fetch.call_args.args[0]
         self.assertTrue(request.full_url.startswith('https://api.themoviedb.org/3/search/tv?'))
         self.assertEqual(request.get_header('Authorization'), 'Bearer fixture-token')
@@ -63,7 +64,7 @@ class TmdbTests(unittest.TestCase):
     def test_movie_key_and_bad_filename_characters(self, fetch):
         fetch.return_value.__enter__.return_value = io.BytesIO(json.dumps({'results': [{'id': 4, 'title': '名称/特别篇', 'release_date': '2025-01-02'}]}).encode())
         result = tmdb.search({'credential': 'a' * 32}, '名称', 'movie')[0]
-        self.assertEqual(result['save_dir'], '/001/名称_特别篇')
+        self.assertEqual(result['save_dir'], '/001/名称_特别篇 (2025)')
         self.assertIn('api_key=', fetch.call_args.args[0].full_url)
 
     @patch('film_index.subscriptions.tmdb_service.urllib.request.urlopen')
@@ -75,3 +76,12 @@ class TmdbTests(unittest.TestCase):
 
 
 if __name__ == '__main__': unittest.main()
+
+
+class MissingYearTests(unittest.TestCase):
+    @patch('film_index.subscriptions.tmdb_service.urllib.request.urlopen')
+    def test_missing_year_does_not_add_empty_parentheses(self, fetch):
+        fetch.return_value.__enter__.return_value = io.BytesIO(json.dumps({'results': [{'id': 123, 'name': '未知年份'}]}).encode())
+        result = tmdb.search({'credential': 'fixture'}, '未知年份', 'tv')[0]
+        self.assertEqual(result['display_name'], '未知年份')
+        self.assertEqual(result['save_dir'], '/001/未知年份')
