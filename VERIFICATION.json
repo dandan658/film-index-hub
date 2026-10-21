@@ -1,9 +1,9 @@
 {
-  "version": "3.0.2",
-  "tested_revision": "e770f07ba70adc9769d38c98bc50f83be7a6a585",
-  "actions_url": "https://github.com/dandan658/film-index-hub/actions/runs/39525034481",
+  "version": "3.0.3",
+  "tested_revision": "ca60e88d448a4b2cfffe577efd8e5cf737b218e6",
+  "actions_url": "https://github.com/dandan658/film-index-hub/actions/runs/39527919357",
   "real_linux_container_tests": "passed",
-  "subscription_regression_tests": 72,
+  "subscription_regression_tests": 81,
   "parallel_database_requests": 24,
   "parallel_workers": 8,
   "same_flask_application_and_pid_for_both_features": true,
@@ -22,7 +22,7 @@
     "directory_sync_configuration"
   ],
   "idle_resource_sample": {
-    "memory_mib": 107.6,
+    "memory_mib": 105.8,
     "cpu_percent": 0.01,
     "environment": "GitHub Actions, synthetic legacy data after migration and restart; not the user NAS"
   },
@@ -35,7 +35,7 @@
     "platforms": [
       "linux/amd64"
     ],
-    "digest": "sha256:25540ec3cee11417826338549dd4befe34624808fae17cb6fab07618adcdd595"
+    "digest": "sha256:df41eeb61dd74a400d1aadbb440119093992192ed4a1cfd916b5cc6749517607"
   },
   "image_command": [
     "python",
@@ -47,5 +47,13 @@
   ],
   "backup_roundtrip_and_invalid_archive_tests": "passed",
   "share_metadata_multiline_and_bounded_recovery": "passed with simulated responses; no live NAS/cloud calls",
-  "tmdb_year_names_and_directories": "passed"
+  "tmdb_year_names_and_directories": "passed",
+  "task_identity_frontend_regression": "passed in Docker frontend stage",
+  "task_uid_status_logs_after_reordering": "passed",
+  "tmdb_season_conflicts_and_exclusive_options": "passed with simulated TMDB metadata",
+  "season_directory_and_filename_agreement": "passed",
+  "local_browser_checks": [
+    "season directory option below flatten",
+    "TMDB automatic season enables and turns off force first season"
+  ]
 }
