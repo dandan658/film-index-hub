@@ -31,5 +31,8 @@ vm.runInNewContext(js, {exports: exportsObject, require(name) {
  assert.equal(request.uids.join(','), 'uid-0,uid-4');
  assert.equal(store.tasks.value[4].status, 'running');
  assert.equal(store.tasks.value[1].status, 'normal');
+ store.tasks.value[0].order=5; store.tasks.value[4].order=1;
+ await store.executeBatchTasks([0], ['uid-0']);
+ assert.equal(request.uids.join(','), 'uid-0');
  console.log('PASS selected task, adjacent rows, immutable identities and batch execution');
 })().catch(error => {console.error(error); process.exitCode=1});

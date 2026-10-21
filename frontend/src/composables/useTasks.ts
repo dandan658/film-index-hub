@@ -27,6 +27,7 @@ export function useTasks() {
   }
 
   const executeBatchTasksWithFastPolling = async (taskIds: number[]) => {
+    const taskUids = taskIds.map(id => tasks.value.find(task => task.order - 1 === id)?.task_uid)
     if (taskIds.length === 0) {
       ElMessage.warning('请先选择要执行的任务')
       return
@@ -44,7 +45,7 @@ export function useTasks() {
       )
 
       setFastPolling(true)
-      await taskStore.executeBatchTasks(taskIds)
+      await taskStore.executeBatchTasks(taskIds, taskUids.every((uid): uid is string => !!uid) ? taskUids : undefined)
       ElMessage.success(`已开始批量执行 ${taskIds.length} 个任务`)
       
       // 清除选中状态

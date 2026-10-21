@@ -584,7 +584,7 @@ class BaiduStorage:
             order = order if order is not None else task_ref
 
         task = self.get_task_by_uid(task_uid)
-        if task is not None:
+        if task is not None or task_uid is not None:
             return task
 
         task = self.get_task_by_order(order)
@@ -2314,7 +2314,7 @@ class BaiduStorage:
             logger.error(f"批量删除任务失败: {str(e)}")
             raise
 
-    def update_task_status_by_order(self, order, status, message=None, error=None, transferred_files=None):
+    def update_task_status_by_order(self, order, status, message=None, error=None, transferred_files=None, task_uid=None):
         """基于order更新任务状态
         Args:
             order: 任务顺序号
@@ -2326,7 +2326,7 @@ class BaiduStorage:
         try:
             tasks = self.config['baidu']['tasks']
             for task in tasks:
-                if task.get('order') == order:
+                if (task.get('task_uid') == task_uid) if task_uid is not None else (task.get('order') == order):
                     if status == 'running':
                         task['status'] = 'running'
                     elif status in ('normal', 'success', 'skipped', 'pending', 'completed'):

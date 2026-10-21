@@ -689,8 +689,11 @@ def execute_task():
     _ensure_task_runtime_state()
     _remember_task_stream(task_uid, task_order)
 
+    def update_status(status, message=None, **kwargs):
+        return storage.update_task_status_by_order(task_order, status, message, task_uid=task_uid, **kwargs)
+
     # 更新为运行状态
-    storage.update_task_status_by_order(task_order, 'running', '正在执行任务')
+    update_status('running', '正在执行任务')
     _publish_task_status(task_order, task_uid)
 
     # 清理旧的任务日志，避免显示历史日志
@@ -708,7 +711,7 @@ def execute_task():
 
             if not latest_task:
                 logger.error(f'任务已不存在(order={task_order})')
-                storage.update_task_status_by_order(task_order, 'error', '任务已不存在')
+                update_status('error', '任务已不存在')
                 _publish_task_status(task_order, task_uid)
                 _append_task_log(task_order, '任务已不存在，执行失败', level='ERROR', task_uid=task_uid)
                 _publish_task_completed(task_order, task_uid)
@@ -730,7 +733,7 @@ def execute_task():
 
                 # 同时更新任务状态消息
                 if status != 'error':
-                    storage.update_task_status_by_order(task_order, 'running', message)
+                    update_status('running', message)
                     _publish_task_status(task_order, task_uid)
 
                 # 记录到系统日志
@@ -763,8 +766,7 @@ def execute_task():
                     except Exception as e:
                         logger.error(f"发送转存成功通知失败: {str(e)}")
                     
-                    storage.update_task_status_by_order(
-                        task_order,
+                    update_status(
                         'normal',
                         '转存成功',
                         transferred_files=transferred_files
@@ -773,13 +775,13 @@ def execute_task():
                     _append_task_log(task_order, '任务执行完成', task_uid=task_uid)
                     _publish_task_completed(task_order, task_uid)
                 else:
-                    storage.update_task_status_by_order(task_order, 'normal', '没有新文件需要转存')
+                    update_status('normal', '没有新文件需要转存')
                     _publish_task_status(task_order, task_uid)
                     _append_task_log(task_order, '没有新文件需要转存', task_uid=task_uid)
                     _publish_task_completed(task_order, task_uid)
             else:
                 error_msg = result.get('error', '转存失败')
-                storage.update_task_status_by_order(task_order, 'error', error_msg)
+                update_status('error', error_msg)
                 _publish_task_status(task_order, task_uid)
                 _append_task_log(task_order, f'任务执行失败: {error_msg}', level='ERROR', task_uid=task_uid)
                 _publish_task_completed(task_order, task_uid)
@@ -789,16 +791,7 @@ def execute_task():
             # 使用存储模块的错误解析功能
             parsed_error = storage._parse_share_error(error_msg) if storage else error_msg
             
-            is_share_forbidden = "error_code: 115" in error_msg
-            
-            if is_share_forbidden:
-                try:
-                    storage.remove_task_by_order(task_order)
-                    storage._update_task_orders()
-                except Exception as del_err:
-                    pass  # 删除失效任务失败，继续执行
-            
-            storage.update_task_status_by_order(task_order, 'error', parsed_error)
+            update_status('error', parsed_error)
             _publish_task_status(task_order, task_uid)
             _append_task_log(task_order, f'任务执行异常: {parsed_error}', level='ERROR', task_uid=task_uid)
             _publish_task_completed(task_order, task_uid)

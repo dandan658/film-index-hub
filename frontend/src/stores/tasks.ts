@@ -223,33 +223,20 @@ export const useTaskStore = defineStore('tasks', () => {
     }
   }
 
-  const executeBatchTasks = async (taskIds: number[]) => {
+  const executeBatchTasks = async (taskIds: number[], taskUids?: string[]) => {
+    const selected = taskUids?.length
+      ? taskUids.map(uid => tasks.value.find(task => task.task_uid === uid))
+      : taskIds.map(id => tasks.value.find(task => task.order - 1 === id))
+    if (selected.some(task => !task)) throw new Error('任务已变化，请刷新后重新选择')
+    const targets = selected as Task[]
     try {
-      // 更新选中任务状态为运行中
-      taskIds.forEach(taskId => {
-        const task = tasks.value.find(t => t.order - 1 === taskId)
-        if (task) {
-          task.status = TASK_STATUS.RUNNING
-          task.message = '正在执行...'
-        }
-      })
-
-      const response = await apiService.executeBatchTasks(taskIds, taskIds.map(id => tasks.value.find(t => t.order - 1 === id)?.task_uid).filter((uid): uid is string => !!uid))
-      if (response.success) {
-        return response.results || response.data?.results
-      } else {
-        throw new Error(response.message || '批量执行任务失败')
-      }
+      targets.forEach(task => { task.status = TASK_STATUS.RUNNING; task.message = '正在执行...' })
+      const uids = targets.map(task => task.task_uid)
+      const response = await apiService.executeBatchTasks(taskIds, uids.every((uid): uid is string => !!uid) ? uids : undefined)
+      if (!response.success) throw new Error(response.message || '批量执行任务失败')
+      return response.results || response.data?.results
     } catch (err) {
-      // 恢复任务状态
-      taskIds.forEach(taskId => {
-        const task = tasks.value.find(t => t.order - 1 === taskId)
-        if (task) {
-          task.status = TASK_STATUS.ERROR
-          task.message = getErrorMessage(err)
-        }
-      })
-      
+      targets.forEach(task => { task.status = TASK_STATUS.ERROR; task.message = getErrorMessage(err) })
       error.value = getErrorMessage(err)
       throw err
     }

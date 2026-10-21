@@ -41,3 +41,25 @@ class TaskIdentityApiTests(unittest.TestCase):
         result=self.client.post('/api/task/execute',json={'task_id':0,'task_uid':'c'*32}).json
         self.assertFalse(result['success'])
         self.storage.transfer_files.assert_not_called()
+
+
+class StableStatusStorageTests(unittest.TestCase):
+    def test_status_update_does_not_follow_old_order(self):
+        from film_index.subscriptions.storage import BaiduStorage
+        storage = BaiduStorage.__new__(BaiduStorage)
+        selected = {'task_uid':'a'*32,'order':2,'status':'normal'}
+        adjacent = {'task_uid':'b'*32,'order':1,'status':'normal'}
+        storage.config = {'baidu':{'tasks':[adjacent,selected]}}
+        storage._save_config = Mock()
+        self.assertTrue(storage.update_task_status_by_order(1,'running','progress',task_uid='a'*32))
+        self.assertEqual(selected['status'],'running')
+        self.assertEqual(adjacent['status'],'normal')
+        self.assertFalse(storage.update_task_status_by_order(1,'error','deleted',task_uid='c'*32))
+        self.assertEqual(adjacent['status'],'normal')
+
+    def test_deleted_uid_never_resolves_by_old_order(self):
+        from film_index.subscriptions.storage import BaiduStorage
+        storage = Mock()
+        storage.get_task_by_uid.return_value = None
+        self.assertIsNone(BaiduStorage.resolve_task(storage,'c'*32,order=1,url='old-url'))
+        storage.get_task_by_order.assert_not_called()
