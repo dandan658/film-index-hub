@@ -1,7 +1,7 @@
 # encoding: utf-8
 import sys
 
-from film_index.media.app.media.tmdbv3api.exceptions import TMDbException
+from .exceptions import TMDbException
 
 
 class AsObj:
@@ -82,3 +82,4 @@ class AsObj:
 
     def values(self):
         return self.__dict__.values()
+

@@ -550,10 +550,13 @@ class FileTransfer:
                 log.info("【Rmt】所有文件均已成功转移过，没有需要处理的文件！如需重新处理，请清理缓存（服务->清理转移缓存）")
                 return __finish_transfer(True, "没有新文件需要处理")
         # API检索出媒体信息，传入一个文件列表，得出每一个文件的名称，这里是当前目录下所有的文件了
+        from film_index.media.app.media.tmdbv3api.tmdb import LAST_TMDB_ERROR
+        LAST_TMDB_ERROR.set('')
         Medias = self.media.get_media_info_on_files(file_list, tmdb_info, media_type, season, episode[0])
         if not Medias:
-            log.error("【Rmt】检索媒体信息出错！")
-            return __finish_transfer(False, "检索媒体信息出错")
+            reason = LAST_TMDB_ERROR.get() or '未能识别媒体名称，请查看 Meta 日志并检查文件名或手动指定 TMDB ID'
+            log.error("【Rmt】检索媒体信息失败：" + reason)
+            return __finish_transfer(False, "检索媒体信息失败：" + reason)
 
         # 更新进度
         self.progress.update(ptype="filetransfer", text=f"共 {len(Medias)} 个文件需要处理...")

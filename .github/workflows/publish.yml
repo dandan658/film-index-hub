@@ -25,6 +25,8 @@ jobs:
         run: docker run --rm --entrypoint python -v "${{ github.workspace }}/tests:/tests:ro" ghcr.io/dandan658/film-index-hub:latest -m unittest discover -s /tests/subscriptions -v
       - name: Test complete backup and startup restore
         run: docker run --rm --entrypoint python -v "${{ github.workspace }}/tests:/tests:ro" ghcr.io/dandan658/film-index-hub:latest -m unittest discover -s /tests -p test_backup.py -v
+      - name: Test real media identification and destination pipeline
+        run: docker run --rm --entrypoint python -v "${{ github.workspace }}/scripts/test_media_runtime.py:/tests/test_media_runtime.py:ro" ghcr.io/dandan658/film-index-hub:latest /tests/test_media_runtime.py
       - name: Test legacy data migration, one process and single-session access
         run: bash scripts/smoke-test.sh
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -41,6 +43,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish the single verified image
         run: |
-          docker tag ghcr.io/dandan658/film-index-hub:latest ghcr.io/dandan658/film-index-hub:3.0.3
-          docker push ghcr.io/dandan658/film-index-hub:3.0.3
+          docker tag ghcr.io/dandan658/film-index-hub:latest ghcr.io/dandan658/film-index-hub:3.0.4
+          docker push ghcr.io/dandan658/film-index-hub:3.0.4
           docker push ghcr.io/dandan658/film-index-hub:latest

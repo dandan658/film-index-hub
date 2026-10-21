@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import ast
+import re
+from contextvars import ContextVar
 import logging
 import os
 import time
@@ -12,6 +15,7 @@ from .as_obj import AsObj
 from .exceptions import TMDbException
 
 logger = logging.getLogger(__name__)
+LAST_TMDB_ERROR = ContextVar("last_tmdb_error", default="")
 
 
 class TMDb(object):
@@ -71,6 +75,7 @@ class TMDb(object):
 
     @proxies.setter
     def proxies(self, proxies):
+        os.environ[self.TMDB_PROXIES] = 'None'
         if proxies:
             proxies_strs = []
             for key, value in proxies.items():
@@ -138,8 +143,29 @@ class TMDb(object):
 
     @staticmethod
     @lru_cache(maxsize=REQUEST_CACHE_MAXSIZE)
-    def cached_request(method, url, data, proxies):
-        return requests.request(method, url, data=data, proxies=eval(proxies), verify=False, timeout=10)
+    def cached_request(method, url, data, proxies, authorization=None):
+        response = requests.request(method, url, data=data, proxies=TMDb.parse_proxies(proxies), headers={'Authorization': authorization} if authorization else {}, verify=False, timeout=10)
+        TMDb.check_response(response)
+        return response
+
+    @staticmethod
+    def parse_proxies(value):
+        if not value or value == 'None':
+            return None
+        parsed = ast.literal_eval(value)
+        if parsed is not None and (not isinstance(parsed, dict) or any(key not in ('http', 'https') or not isinstance(url, str) for key, url in parsed.items())):
+            raise TMDbException('代理配置格式错误，请在媒体基础设置中检查代理服务器')
+        return parsed
+
+    @staticmethod
+    def check_response(response):
+        code = response.status_code
+        if code in (401, 403): message = 'TMDB 凭据无效或无访问权限，请检查媒体或订阅 TMDB 配置'
+        elif code == 429: message = 'TMDB 请求过于频繁，请稍后重试'
+        elif code >= 400: message = f'TMDB 服务请求失败（HTTP {code}）'
+        else: return
+        LAST_TMDB_ERROR.set(message)
+        raise TMDbException(message)
 
     def cache_clear(self):
         return self.cached_request.cache_clear()
@@ -150,18 +176,21 @@ class TMDb(object):
         if self.api_key is None or self.api_key == "":
             raise TMDbException("No API key found.")
 
-        url = "%s%s?api_key=%s&%s&language=%s" % (
-            self.domain,
-            action,
-            self.api_key,
-            append_to_response,
-            self.language,
-        )
-
-        if self.cache and self.obj_cached and call_cached and method != "POST":
-            req = self.cached_request(method, url, data, self.proxies)
-        else:
-            req = self._session.request(method, url, data=data, proxies=eval(self.proxies), timeout=10, verify=False)
+        token = self.api_key.removeprefix('Bearer ').strip()
+        is_key = re.fullmatch(r'[0-9a-fA-F]{32}', token) is not None
+        authorization = None if is_key else 'Bearer ' + token
+        query = ('api_key=' + token + '&') if is_key else ''
+        url = "%s%s?%s%s&language=%s" % (self.domain, action, query, append_to_response, self.language)
+        try:
+            if self.cache and self.obj_cached and call_cached and method != "POST":
+                req = self.cached_request(method, url, data, self.proxies, authorization)
+            else:
+                req = self._session.request(method, url, data=data, proxies=self.parse_proxies(self.proxies), headers={'Authorization': authorization} if authorization else {}, timeout=10, verify=False)
+                self.check_response(req)
+        except (requests.RequestException, ValueError, SyntaxError, TypeError):
+            message = '无法连接 TMDB 或代理配置无效，请检查 NAS 网络和媒体代理设置'
+            LAST_TMDB_ERROR.set(message)
+            raise TMDbException(message) from None
 
         headers = req.headers
 
@@ -178,13 +207,18 @@ class TMDb(object):
             if self.wait_on_rate_limit:
                 logger.warning("Rate limit reached. Sleeping for: %d" % sleep_time)
                 time.sleep(abs(sleep_time))
-                self._call(action, append_to_response, call_cached, method, data)
+                return self._call(action, append_to_response, call_cached, method, data)
             else:
                 raise TMDbException(
                     "Rate limit reached. Try again in %d seconds." % sleep_time
                 )
 
-        json = req.json()
+        try:
+            json = req.json()
+        except ValueError:
+            message = 'TMDB 返回了非 JSON 数据，请检查代理地址或网络拦截'
+            LAST_TMDB_ERROR.set(message)
+            raise TMDbException(message) from None
 
         if "page" in json:
             os.environ["page"] = str(json["page"])

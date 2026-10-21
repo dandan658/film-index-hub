@@ -42,15 +42,18 @@ class Media:
     def init_config(self):
         app = Config().get_config('app')
         laboratory = Config().get_config('laboratory')
+        from film_index.media.tmdb_credentials import media_tmdb_credential
+        tmdb_credential = media_tmdb_credential(app)
+        self.tmdb = None
         if app:
-            if app.get('rmt_tmdbkey'):
+            if tmdb_credential:
                 self.tmdb = TMDb()
                 if laboratory.get('tmdb_proxy'):
                     self.tmdb.domain = DEFAULT_TMDB_PROXY
                 else:
-                    self.tmdb.domain = app.get("tmdb_domain")
+                    self.tmdb.domain = app.get("tmdb_domain") or "https://api.themoviedb.org/3"
                 self.tmdb.cache = True
-                self.tmdb.api_key = app.get('rmt_tmdbkey')
+                self.tmdb.api_key = tmdb_credential
                 self.tmdb.language = 'zh'
                 self.tmdb.proxies = Config().get_proxies()
                 self.tmdb.debug = True
@@ -490,7 +493,11 @@ class Media:
         :param chinese: 是否转换中文标题
         """
         if not self.tmdb:
-            log.error("【Meta】TMDB API Key 未设置！")
+            self.init_config()
+        if not self.tmdb:
+            from film_index.media.app.media.tmdbv3api.tmdb import LAST_TMDB_ERROR
+            LAST_TMDB_ERROR.set('未配置 TMDB 凭据：请在媒体基础设置或订阅 TMDB 设置中填写 API Key / Read Access Token')
+            log.error("【Meta】未配置 TMDB 凭据，请在媒体基础设置或订阅 TMDB 设置中填写")
             return None
         if language:
             self.tmdb.language = language
@@ -534,7 +541,11 @@ class Media:
         查询名称中有关键字的所有的TMDB信息并返回
         """
         if not self.tmdb:
-            log.error("【Meta】TMDB API Key 未设置！")
+            self.init_config()
+        if not self.tmdb:
+            from film_index.media.app.media.tmdbv3api.tmdb import LAST_TMDB_ERROR
+            LAST_TMDB_ERROR.set('未配置 TMDB 凭据：请在媒体基础设置或订阅 TMDB 设置中填写 API Key / Read Access Token')
+            log.error("【Meta】未配置 TMDB 凭据，请在媒体基础设置或订阅 TMDB 设置中填写")
             return []
         if not title:
             return []
@@ -638,7 +649,11 @@ class Media:
         :return: 带有TMDB信息的MetaInfo对象
         """
         if not self.tmdb:
-            log.error("【Meta】TMDB API Key 未设置！")
+            self.init_config()
+        if not self.tmdb:
+            from film_index.media.app.media.tmdbv3api.tmdb import LAST_TMDB_ERROR
+            LAST_TMDB_ERROR.set('未配置 TMDB 凭据：请在媒体基础设置或订阅 TMDB 设置中填写 API Key / Read Access Token')
+            log.error("【Meta】未配置 TMDB 凭据，请在媒体基础设置或订阅 TMDB 设置中填写")
             return None
         if not title:
             return None
@@ -768,7 +783,11 @@ class Media:
         """
         # 存储文件路径与媒体的对应关系
         if not self.tmdb:
-            log.error("【Meta】TMDB API Key 未设置！")
+            self.init_config()
+        if not self.tmdb:
+            from film_index.media.app.media.tmdbv3api.tmdb import LAST_TMDB_ERROR
+            LAST_TMDB_ERROR.set('未配置 TMDB 凭据：请在媒体基础设置或订阅 TMDB 设置中填写 API Key / Read Access Token')
+            log.error("【Meta】未配置 TMDB 凭据，请在媒体基础设置或订阅 TMDB 设置中填写")
             return {}
         return_media_infos = {}
         # 不是list的转为list

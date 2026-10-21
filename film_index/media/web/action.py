@@ -959,6 +959,9 @@ class WebAction:
         log_list = []
         refresh_new = data.get('refresh_new')
         source = data.get('source')
+        if source == 'DirectorySync':
+            with log.lock:
+                return {'loglist': [entry for entry in log.LOG_QUEUE if entry.get('source') in ('Sync', 'Rmt', 'Meta', 'Scraper', 'Subtitle', 'System')]}
 
         if not source:
             if not refresh_new:

@@ -44,3 +44,5 @@ body.fti-hub-embedded{background:transparent!important}
 #system-success-modal .btn-success{background:#1687ff!important;border-color:transparent!important;border-radius:12px}
 
 .modal-content>.btn-close{position:absolute;top:16px;right:16px;z-index:2}
+
+#logging_table table{table-layout:auto!important}#logging_table th:first-child,#logging_table td:first-child{width:80px!important;min-width:80px;white-space:nowrap!important;overflow-wrap:normal!important}#logging_table th:nth-child(2),#logging_table td:nth-child(2){width:85px!important;min-width:85px;white-space:nowrap!important}

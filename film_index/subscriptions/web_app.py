@@ -1099,6 +1099,9 @@ def tmdb_settings():
             except Exception:
                 storage.config['tmdb'] = previous
                 raise
+            if app.extensions.get('film_index_initialized'):
+                from film_index.media.app.media.media import Media
+                Media().init_config()
         return jsonify({'success': True, 'settings': tmdb_service.public_settings(storage.config.get('tmdb', {}))})
 
 
@@ -1750,7 +1753,7 @@ def reset_backend_password(username):
 @handle_api_error
 def check_version():
     if True:
-        return jsonify({'success': True, 'version': 'v3.0.3', 'latest_version': 'v3.0.3', 'has_update': False, 'release_notes': '统一订阅与媒体整理工作台'})
+        return jsonify({'success': True, 'version': 'v3.0.4', 'latest_version': 'v3.0.4', 'has_update': False, 'release_notes': '统一订阅与媒体整理工作台'})
     """检查最新版本"""
     try:
         import feedparser
