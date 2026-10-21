@@ -2112,15 +2112,32 @@ class Media:
         获取剧集中某一集封面
         """
         if not self.episode:
-            return ""
-        res = self.episode.images(tv_id, season_id, episode_id)
-        if res:
-            if orginal:
-                return TMDB_IMAGE_ORIGINAL_URL % res[0].get("file_path")
-            else:
-                return TMDB_IMAGE_W500_URL % res[0].get("file_path")
-        else:
-            return ""
+            self.init_config()
+        if not self.episode:
+            raise TMDbException('未配置 TMDB 凭据，无法查询剧集缩略图')
+        tv_id, season_id, episode_id = int(tv_id), int(season_id), int(episode_id)
+        if tv_id <= 0 or season_id < 0 or episode_id <= 0:
+            raise ValueError('TMDB 剧集缩略图的影片、季或集编号无效')
+        log.info(f"【Scraper】查询TMDB剧集缩略图：TV={tv_id} S{season_id:02d}E{episode_id:02d}")
+        # The season page displays episodes[].still_path. Reuse exactly that
+        # series/season/episode match rather than a language-filtered image list.
+        season = self.get_tmdb_tv_season_detail(tmdbid=tv_id, season=season_id)
+        if season:
+            for item in season.get('episodes', []) or []:
+                if item.get('episode_number') == episode_id:
+                    image = item.get('still_path')
+                    if isinstance(image, str) and image.startswith('/'):
+                        return (TMDB_IMAGE_ORIGINAL_URL if orginal else TMDB_IMAGE_W500_URL) % image
+                    break
+        # Query all image languages, including null, and avoid caching a negative
+        # image result indefinitely. Exceptions must propagate to the caller.
+        images = self.episode.images(tv_id, season_id, episode_id)
+        for item in images or []:
+            image = item.get('file_path')
+            if isinstance(image, str) and image.startswith('/'):
+                return (TMDB_IMAGE_ORIGINAL_URL if orginal else TMDB_IMAGE_W500_URL) % image
+        log.info(f"【Scraper】TMDB确认无剧集缩略图：TV={tv_id} S{season_id:02d}E{episode_id:02d}")
+        return ""
 
     def get_tmdb_factinfo(self, media_info):
         """

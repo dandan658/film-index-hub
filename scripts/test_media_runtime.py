@@ -48,3 +48,42 @@ with patch('requests.request',return_value=Mock(status_code=200,headers={},json=
     activity=WebAction._WebAction__logging({'source':'DirectorySync','refresh_new':0})
     assert any(item['source']=='Meta' for item in activity['loglist'])
     print('PASS: shared TMDB credential, no proxy, real TV identification, year/season/episode destination',flush=True)
+
+# Exercise the real selection method independently of transport and file moving.
+from types import SimpleNamespace
+from film_index.media.app.media.tmdbv3api.exceptions import TMDbException
+images=Mock(return_value=[{'file_path':'/neutral.jpg','iso_639_1':None}])
+with patch.object(media,'episode',SimpleNamespace(images=images)):
+    with patch.object(media,'get_tmdb_tv_season_detail',return_value={'episodes':[{'episode_number':1,'still_path':'/wrong-episode.jpg'},{'episode_number':2,'still_path':'/correct-episode.jpg'}]}) as season:
+        assert media.get_episode_images(303287,'1','2',True).endswith('/correct-episode.jpg')
+        season.assert_called_once_with(tmdbid=303287,season=1)
+        images.assert_not_called()
+    with patch.object(media,'get_tmdb_tv_season_detail',return_value={'episodes':[{'episode_number':2,'still_path':None}]}):
+        assert media.get_episode_images(303287,1,2,True).endswith('/neutral.jpg')
+        images.return_value=[]
+        assert media.get_episode_images(303287,1,2,True)==''
+        images.side_effect=TMDbException('fixture network error')
+        try:
+            media.get_episode_images(303287,1,2,True)
+        except TMDbException:
+            pass
+        else:
+            raise AssertionError('image lookup errors must not be treated as no image')
+print('PASS: exact season/episode still_path, neutral image fallback, confirmed no-image and query error distinction',flush=True)
+
+from film_index.media.app.media.scraper import Scraper
+from film_index.media.app.helper.ffmpeg_helper import FfmpegHelper
+scraper=Scraper()
+thumb_dir=root/'thumbnail-selection';thumb_dir.mkdir()
+options={'tv':{'episode_thumb':True}}
+with patch.object(scraper.media,'get_episode_images',return_value='https://image.tmdb.org/t/p/original/correct.jpg'), patch.object(Scraper,'_Scraper__save_image') as save, patch.object(FfmpegHelper,'get_thumb_image_from_video') as capture:
+    scraper.gen_scraper_files(metadata,{'tv':{}},options,str(thumb_dir),'episode','.mp4')
+    save.assert_called_once()
+    capture.assert_not_called()
+with patch.object(scraper.media,'get_episode_images',side_effect=TMDbException('fixture error')), patch.object(FfmpegHelper,'get_thumb_image_from_video') as capture:
+    scraper.gen_scraper_files(metadata,{'tv':{}},options,str(thumb_dir),'episode','.mp4')
+    capture.assert_not_called()
+with patch.object(scraper.media,'get_episode_images',return_value=''), patch.object(FfmpegHelper,'get_thumb_image_from_video',return_value=False) as capture:
+    scraper.gen_scraper_files(metadata,{'tv':{}},options,str(thumb_dir),'episode','.mp4')
+    capture.assert_called_once()
+print('PASS: real scraper downloads TMDB image first and decodes video only on confirmed no-image',flush=True)

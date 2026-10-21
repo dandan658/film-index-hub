@@ -60,3 +60,16 @@ class MediaTmdbTests(unittest.TestCase):
         self.assertIsNone(TMDb.parse_proxies(None))
         with self.assertRaises((ValueError,TMDbException)):
             TMDb.parse_proxies("__import__('os').system('false')")
+
+
+class ImageLanguageTests(unittest.TestCase):
+    @patch('requests.Session.request')
+    def test_episode_images_do_not_inherit_text_language(self, request):
+        with patch.dict(os.environ, {'TMDB_API_KEY':'a'*32,'TMDB_LANGUAGE':'zh-CN','TMDB_CACHE_ENABLED':'False'}):
+            request.return_value=Mock(status_code=200,headers={},json=lambda:{'stills':[{'file_path':'/neutral.jpg','iso_639_1':None}]})
+            tmdb=TMDb()
+            data=tmdb._call('/tv/303287/season/1/episode/1/images','',call_cached=False)
+            from urllib.parse import urlsplit, parse_qs
+            query=parse_qs(urlsplit(request.call_args.args[1]).query)
+            self.assertNotIn('language',query)
+            self.assertEqual(data['stills'][0]['file_path'],'/neutral.jpg')

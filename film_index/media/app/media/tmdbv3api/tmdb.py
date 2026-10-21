@@ -180,7 +180,9 @@ class TMDb(object):
         is_key = re.fullmatch(r'[0-9a-fA-F]{32}', token) is not None
         authorization = None if is_key else 'Bearer ' + token
         query = ('api_key=' + token + '&') if is_key else ''
-        url = "%s%s?%s%s&language=%s" % (self.domain, action, query, append_to_response, self.language)
+        # Image language is optional: a text locale must not hide neutral stills.
+        language_query = '' if action.endswith('/images') else '&language=' + self.language
+        url = "%s%s?%s%s%s" % (self.domain, action, query, append_to_response, language_query)
         try:
             if self.cache and self.obj_cached and call_cached and method != "POST":
                 req = self.cached_request(method, url, data, self.proxies, authorization)

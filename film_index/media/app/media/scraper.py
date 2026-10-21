@@ -468,14 +468,18 @@ class Scraper:
                     episode_thumb = os.path.join(dir_path, file_name + "-thumb.jpg")
                     if not os.path.exists(episode_thumb):
                         # 优先从TMDB查询
-                        episode_image = self.media.get_episode_images(tv_id=media.tmdb_id,
-                                                                      season_id=media.get_season_seq(),
-                                                                      episode_id=media.get_episode_seq(),
-                                                                      orginal=True)
+                        try:
+                            episode_image = self.media.get_episode_images(tv_id=media.tmdb_id,
+                                                                          season_id=media.get_season_seq(),
+                                                                          episode_id=media.get_episode_seq(),
+                                                                          orginal=True)
+                        except Exception:
+                            log.warn(f"【Scraper】TMDB剧集缩略图查询失败，本次跳过，未当作无图截帧：TV={media.tmdb_id} S{media.get_season_seq()}E{media.get_episode_seq()}；请检查TMDB连接或配置")
+                            episode_image = None
                         if episode_image:
                             self.__save_image(episode_image, episode_thumb)
-                        else:
-                            # 从视频文件生成缩略图
+                        elif episode_image == "":
+                            # Only a successful no-image response permits decoding.
                             video_path = os.path.join(dir_path, file_name + file_ext)
                             log.info(f"【Scraper】正在生成缩略图：{video_path} ...")
                             generated = FfmpegHelper().get_thumb_image_from_video(video_path=video_path,
