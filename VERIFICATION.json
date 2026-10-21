@@ -1,9 +1,9 @@
 {
-  "version": "3.0.5",
-  "tested_revision": "2925a569dbfba3d5856aee9692d2f9d506d7c84a",
-  "actions_url": "https://github.com/dandan658/film-index-hub/actions/runs/39536018206",
+  "version": "3.0.6",
+  "tested_revision": "494529e87087ff9d4ef5cdfc318ec025de7eeae1",
+  "actions_url": "https://github.com/dandan658/film-index-hub/actions/runs/39536947822",
   "real_linux_container_tests": "passed",
-  "subscription_regression_tests": 88,
+  "subscription_regression_tests": 89,
   "parallel_database_requests": 24,
   "parallel_workers": 8,
   "same_flask_application_and_pid_for_both_features": true,
@@ -35,7 +35,7 @@
     "platforms": [
       "linux/amd64"
     ],
-    "digest": "sha256:ae01ff450ea00d6f8332e86b75e0a05108105845a9e0e0239855953f6900e80b"
+    "digest": "sha256:788dcbff488256f53c5769e2c18331f93f6130a7fd7aca8ab61481b7ebfc9330"
   },
   "image_command": [
     "python",
@@ -58,5 +58,7 @@
   "full_directory_sync_log_chain": "passed",
   "bundled_ffmpeg_real_jpeg_generation": "passed in Linux with synthetic video",
   "thumbnail_timeout_and_partial_cleanup": "passed",
-  "thumbnail_fast_input_seek_and_existing_image_preservation": "passed"
+  "thumbnail_fast_input_seek_and_existing_image_preservation": "passed",
+  "episode_still_exact_identity_and_language_neutral_fallback": "passed with simulated TMDB responses",
+  "scraper_no_decode_on_tmdb_success_or_lookup_error": "passed in real scraper pipeline"
 }
