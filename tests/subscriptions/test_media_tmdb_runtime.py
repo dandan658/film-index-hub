@@ -8,7 +8,8 @@ import importlib
 from pathlib import Path
 from types import ModuleType
 package = ModuleType('film_tmdb_runtime_test')
-package.__path__ = [str(Path(__file__).resolve().parents[2] / 'film_index/media/app/media/tmdbv3api')]
+import film_index
+package.__path__ = [str(Path(film_index.__file__).resolve().parent / 'media/app/media/tmdbv3api')]
 sys.modules.setdefault(package.__name__, package)
 module = importlib.import_module('film_tmdb_runtime_test.tmdb')
 TMDb, LAST_TMDB_ERROR = module.TMDb, module.LAST_TMDB_ERROR
