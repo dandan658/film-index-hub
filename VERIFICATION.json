@@ -1,9 +1,9 @@
 {
-  "version": "3.0.3",
-  "tested_revision": "ca60e88d448a4b2cfffe577efd8e5cf737b218e6",
-  "actions_url": "https://github.com/dandan658/film-index-hub/actions/runs/39527919357",
+  "version": "3.0.4",
+  "tested_revision": "902b1bf7c939a57ca5eb0219098299df5303d5f7",
+  "actions_url": "https://github.com/dandan658/film-index-hub/actions/runs/39533666235",
   "real_linux_container_tests": "passed",
-  "subscription_regression_tests": 81,
+  "subscription_regression_tests": 85,
   "parallel_database_requests": 24,
   "parallel_workers": 8,
   "same_flask_application_and_pid_for_both_features": true,
@@ -35,7 +35,7 @@
     "platforms": [
       "linux/amd64"
     ],
-    "digest": "sha256:df41eeb61dd74a400d1aadbb440119093992192ed4a1cfd916b5cc6749517607"
+    "digest": "sha256:189292f870a2b7b9a7208c322a18f7c975baf4ede374db225ad03a43fa8ee950"
   },
   "image_command": [
     "python",
@@ -52,8 +52,8 @@
   "task_uid_status_logs_after_reordering": "passed",
   "tmdb_season_conflicts_and_exclusive_options": "passed with simulated TMDB metadata",
   "season_directory_and_filename_agreement": "passed",
-  "local_browser_checks": [
-    "season directory option below flatten",
-    "TMDB automatic season enables and turns off force first season"
-  ]
+  "media_identification_and_real_file_move": "passed in Linux with simulated TMDB responses and temporary file",
+  "proxyless_tmdb_key_and_bearer_auth": "passed",
+  "media_credential_fallback": "passed",
+  "full_directory_sync_log_chain": "passed"
 }
