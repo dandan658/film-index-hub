@@ -275,7 +275,9 @@ def basic():
         proxy = proxy.replace("http://", "")
     RmtModeDict = WebAction().get_rmt_modes()
     CustomScriptCfg = SystemConfig().get_system_config("CustomScript")
+    from film_index.media.tmdb_credentials import media_tmdb_credential
     return render_template("setting/basic.html",
+                           TmdbConfigured=bool(media_tmdb_credential(Config().get_config('app'))),
                            Config=Config().get_config(),
                            Proxy=proxy,
                            RmtModeDict=RmtModeDict,

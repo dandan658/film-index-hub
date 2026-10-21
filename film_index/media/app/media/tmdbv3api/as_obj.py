@@ -82,4 +82,3 @@ class AsObj:
 
     def values(self):
         return self.__dict__.values()
-
