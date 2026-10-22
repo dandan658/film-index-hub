@@ -1,7 +1,7 @@
 {
-  "version": "3.0.7",
-  "tested_revision": "8ba180d96c6a1694bf2095a603014a4ee2aa9630",
-  "actions_url": "https://github.com/dandan658/film-index-hub/actions/runs/39701893834",
+  "version": "3.0.8",
+  "tested_revision": "52f3243871aa45cbc3af5761339203c9b9f795e6",
+  "actions_url": "https://github.com/dandan658/film-index-hub/actions/runs/39704966685",
   "real_linux_container_tests": "passed",
   "subscription_regression_tests": 100,
   "parallel_database_requests": 24,
@@ -29,7 +29,7 @@
   "nas_data_operations": "not performed",
   "gateway": false,
   "legacy_image_dependency": false,
-  "published_image": "ghcr.io/dandan658/film-index-hub:3.0.7",
+  "published_image": "ghcr.io/dandan658/film-index-hub:3.0.8",
   "image_command": [
     "python",
     "-m",
@@ -56,20 +56,16 @@
   "scraper_no_decode_on_tmdb_success_or_lookup_error": "passed in real scraper pipeline",
   "baidu_account_management": {
     "visible_check_edit_delete_buttons": "implemented",
-    "top_left_account_switch": "implemented",
+    "top_left_account_switch": "removed at user request",
     "authentication_and_current_account_deletion_protection": "passed in Linux container",
     "probe_preserves_active_account": "passed",
     "switch_failure_preserves_previous_account": "passed",
     "inflight_quota_cache_isolation": "passed",
     "network_failure_is_not_invalid_credentials": "passed",
-    "frontend_store_regression": "passed in Docker frontend build"
+    "frontend_store_regression": "passed in Docker frontend build",
+    "top_right_user_menu_account_switch": "implemented; select an account and confirm in glass dialog"
   },
-  "published_image_digest": "sha256:adf04f885dfd75d8518d22dfb75d49a4e7c012eec7801307468190f53917dd2d",
+  "published_image_digest": "sha256:6202c590541b76949224f15df1aa725fb6848d738ba0d55cb423d53e6173d9e9",
   "latest_and_version_tag_same_digest": true,
-  "resource_measurement_note": "Existing idle_resource_sample is the retained v3.0.6 measurement, not a new v3.0.7 measurement.",
-  "pending_release": {
-    "version": "3.0.8",
-    "changes": "remove top-left switch; add Switch Baidu account to top-right user menu",
-    "linux_image_ci": "pending"
-  }
+  "resource_measurement_note": "Existing idle_resource_sample is the retained v3.0.6 measurement, not a new v3.0.7 measurement."
 }
