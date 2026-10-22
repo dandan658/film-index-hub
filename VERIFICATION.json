@@ -66,5 +66,10 @@
   },
   "published_image_digest": "sha256:adf04f885dfd75d8518d22dfb75d49a4e7c012eec7801307468190f53917dd2d",
   "latest_and_version_tag_same_digest": true,
-  "resource_measurement_note": "Existing idle_resource_sample is the retained v3.0.6 measurement, not a new v3.0.7 measurement."
+  "resource_measurement_note": "Existing idle_resource_sample is the retained v3.0.6 measurement, not a new v3.0.7 measurement.",
+  "pending_release": {
+    "version": "3.0.8",
+    "changes": "remove top-left switch; add Switch Baidu account to top-right user menu",
+    "linux_image_ci": "pending"
+  }
 }

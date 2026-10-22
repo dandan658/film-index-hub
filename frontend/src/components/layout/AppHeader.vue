@@ -8,17 +8,7 @@
           <h1 class="app-title">Film Index</h1>
         </div>
         
-        <el-select
-          :model-value="currentUser || undefined"
-          class="baidu-account-switch"
-          placeholder="切换百度账号"
-          aria-label="切换百度账号"
-          :disabled="switching || users.length === 0"
-          :loading="switching"
-          @change="handleAccountSwitch"
-        >
-          <el-option v-for="account in users" :key="account.username" :label="account.username" :value="account.username" />
-        </el-select>
+
       </div>
       
       <!-- 右侧：用户信息和操作 -->
@@ -53,7 +43,10 @@
           </div>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item @click="goToUsers">
+              <el-dropdown-item :disabled="switching || users.length === 0" @click="openAccountSwitch">
+                切换百度账号
+              </el-dropdown-item>
+              <el-dropdown-item divided @click="goToUsers">
                 <el-icon><User /></el-icon>
                 用户管理
               </el-dropdown-item>
@@ -80,6 +73,16 @@
     
     <!-- 移动端菜单抽屉已移除，使用底部导航代替 -->
     
+    <el-dialog v-model="showAccountSwitch" title="切换百度账号" width="420px" append-to-body :close-on-click-modal="!switching" :close-on-press-escape="!switching" :show-close="!switching">
+      <el-select v-model="selectedAccount" placeholder="选择百度账号" aria-label="选择百度账号" :disabled="switching" style="width: 100%">
+        <el-option v-for="account in users" :key="account.username" :label="account.username + (account.username === currentUser ? '（当前）' : '')" :value="account.username" />
+      </el-select>
+      <template #footer>
+        <el-button :disabled="switching" @click="showAccountSwitch = false">取消</el-button>
+        <el-button type="primary" :loading="switching" :disabled="!selectedAccount || selectedAccount === currentUser" @click="handleAccountSwitch(selectedAccount)">确认切换</el-button>
+      </template>
+    </el-dialog>
+
     <!-- 通知面板 -->
     <el-drawer
       v-model="showNotifications"
@@ -138,9 +141,18 @@ const authStore = useAuthStore()
 const userStore = useUserStore()
 const versionStore = useVersionStore()
 const { currentUser, users, switching } = storeToRefs(userStore)
+const showAccountSwitch = ref(false)
+const selectedAccount = ref('')
+const openAccountSwitch = () => {
+  selectedAccount.value = currentUser.value
+  showAccountSwitch.value = true
+}
 const handleAccountSwitch = async (username: string) => {
   try {
-    if (await userStore.switchUser(username)) ElMessage.success(`已切换百度账号：${username}`)
+    if (await userStore.switchUser(username)) {
+      showAccountSwitch.value = false
+      ElMessage.success(`已切换百度账号：${username}`)
+    }
   } catch (error) { ElMessage.error(`切换账号失败：${error}`) }
 }
 const { hasUpdate } = storeToRefs(versionStore)
@@ -239,8 +251,6 @@ const loadNotifications = async () => {
   padding: 0 20px;
   max-width: 100%;
 }
-
-.baidu-account-switch { width: 190px; max-width: 32vw; }
 
 .header-left {
   display: flex;

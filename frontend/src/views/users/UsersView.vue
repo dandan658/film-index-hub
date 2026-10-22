@@ -34,7 +34,7 @@
       </div></div>
     </div>
 
-    <p class="form-help">有效/失效状态以账号检测结果为准；删除当前账号前，请先在左上角切换到其他账号。</p>
+    <p class="form-help">有效/失效状态以账号检测结果为准；删除当前账号前，请先在右上角菜单切换到其他账号。</p>
     <!-- 用户列表 -->
     <div class="users-list">
       <el-card v-loading="loading">
