@@ -45,6 +45,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish the single verified image
         run: |
-          docker tag ghcr.io/dandan658/film-index-hub:latest ghcr.io/dandan658/film-index-hub:3.0.6
-          docker push ghcr.io/dandan658/film-index-hub:3.0.6
+          docker tag ghcr.io/dandan658/film-index-hub:latest ghcr.io/dandan658/film-index-hub:3.0.7
+          docker push ghcr.io/dandan658/film-index-hub:3.0.7
           docker push ghcr.io/dandan658/film-index-hub:latest

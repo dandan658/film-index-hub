@@ -11,6 +11,8 @@ export const useUserStore = defineStore('users', () => {
   const currentUser = ref<string>('')
   const userQuota = ref<UserQuota | null>(null)
   const loading = ref(false)
+  const switching = ref(false)
+  let quotaGeneration = 0
   const error = ref<string | null>(null)
 
   // 计算属性
@@ -19,7 +21,7 @@ export const useUserStore = defineStore('users', () => {
   })
 
   const validUsers = computed(() => {
-    return users.value.filter(user => user.cookies_valid !== false)
+    return users.value.filter(user => user.cookies_valid === true)
   })
 
   const invalidUsers = computed(() => {
@@ -30,7 +32,8 @@ export const useUserStore = defineStore('users', () => {
     return {
       total: users.value.length,
       valid: validUsers.value.length,
-      invalid: invalidUsers.value.length
+      invalid: invalidUsers.value.length,
+      unchecked: users.value.filter(user => user.cookies_valid == null).length
     }
   })
 
@@ -67,8 +70,11 @@ export const useUserStore = defineStore('users', () => {
   }
 
   const fetchUserQuota = async () => {
+    const generation = ++quotaGeneration
+    const account = currentUser.value
     try {
       const response = await apiService.getUserQuota()
+      if (generation !== quotaGeneration || account !== currentUser.value) return
       if (response.success) {
         const quota = response.quota || response.data?.quota || response.data
         // 将后端返回的数据格式化为前端需要的格式
@@ -134,12 +140,16 @@ export const useUserStore = defineStore('users', () => {
   }
 
   const switchUser = async (username: string) => {
+    if (switching.value || username === currentUser.value) return false
+    switching.value = true
+    ++quotaGeneration
     try {
       const response = await apiService.switchUser(username)
       if (response.success) {
         // 更新当前用户状态
         users.value.forEach(user => {
           user.is_current = user.username === username
+          if (user.is_current) user.cookies_valid = true
           // 如果返回的响应包含用户配额信息，也要格式化
           if (response.current_user && response.current_user.quota && user.username === username) {
             user.quota = {
@@ -150,6 +160,7 @@ export const useUserStore = defineStore('users', () => {
           }
         })
         currentUser.value = username
+        userQuota.value = null
         
         // 重新获取用户配额
         await fetchUserQuota()
@@ -161,7 +172,19 @@ export const useUserStore = defineStore('users', () => {
     } catch (err) {
       error.value = getErrorMessage(err)
       throw err
+    } finally { switching.value = false }
+  }
+
+  const checkUser = async (username: string) => {
+    const response = await apiService.checkUser(username)
+    if (!response.success) throw new Error(response.message || '检测失败')
+    const user = users.value.find(item => item.username === username)
+    if (user) {
+      user.cookies_valid = response.valid
+      if (response.quota) user.quota = response.quota
+      else if (response.valid === false) user.quota = undefined
     }
+    return response
   }
 
   const getUserCookies = async (username: string) => {
@@ -211,6 +234,7 @@ export const useUserStore = defineStore('users', () => {
     currentUser,
     userQuota,
     loading,
+    switching,
     error,
     
     // 计算属性
@@ -227,6 +251,7 @@ export const useUserStore = defineStore('users', () => {
     deleteUser,
     switchUser,
     getUserCookies,
+    checkUser,
     
     // 辅助方法
     findUserByUsername,

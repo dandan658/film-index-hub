@@ -365,45 +365,99 @@ class BaiduStorage:
         self._user_info_cache_time = 0
         logger.debug("已清除用户信息缓存")
         
+    def check_user(self, username):
+        """Probe one account without changing the active account or shared tasks."""
+        _, result = self._probe_user(username)
+        return result
+
+    def _probe_user(self, username):
+        from hashlib import sha256
+        user = self.config.get('baidu', {}).get('users', {}).get(username)
+        if user is None:
+            raise ValueError('账号不存在')
+        raw = user.get('cookies', '')
+        result = {'valid': None, 'message': '暂时无法检测，请稍后重试'}
+        candidate = None
+        cookies = self._parse_cookies(raw)
+        if not self._validate_cookies(cookies):
+            result = {'valid': False, 'message': 'Cookies 不完整，请编辑账号更新 Cookies'}
+        else:
+            try:
+                candidate = BaiduPCSApi(cookies=cookies)
+                quota = candidate.quota()
+                total, used = (quota[0], quota[1]) if isinstance(quota, (tuple, list)) else (quota['total'], quota['used'])
+                total, used = int(total), int(used)
+                if total < 0 or used < 0:
+                    raise ValueError('Invalid quota')
+                result = {'valid': True, 'message': '账号有效', 'quota': {
+                    'total': total, 'used': used,
+                    'total_gb': round(total / 1024**3, 2), 'used_gb': round(used / 1024**3, 2),
+                    'total_formatted': f'{total / 1024**3:.2f} GB', 'used_formatted': f'{used / 1024**3:.2f} GB',
+                    'percent': min(100, round(used / total * 100, 2)) if total else 0}}
+            except Exception as error:
+                if getattr(error, 'error_code', None) in (-6, 3, 31041, 31042, 31044, 31045):
+                    result = {'valid': False, 'message': '百度账号登录已失效，请更新 Cookies'}
+                # Do not expose exception bodies, cookies or transient errors as invalid credentials.
+        if not hasattr(self, '_account_checks'):
+            self._account_checks = {}
+        self._account_checks[username] = (sha256(raw.encode()).hexdigest(), result)
+        return candidate, result
+
     def switch_user(self, username):
-        """切换当前用户"""
+        """Validate first; commit the account and client together, retaining the old account on failure."""
+        raw = self.config.get('baidu', {}).get('users', {}).get(username, {}).get('cookies')
         try:
-            if username not in self.config['baidu']['users']:
-                raise ValueError(f"用户 {username} 不存在")
-                
-            self.config['baidu']['current_user'] = username
-            self._save_config()
-            self._init_client()
-            # 清除用户信息缓存
-            self._clear_user_info_cache()
-            
-            logger.success(f"已切换到用户: {username}")
+            candidate, result = self._probe_user(username)
+            if result['valid'] is not True:
+                return False
+            with self._client_lock:
+                if self.config['baidu']['users'].get(username, {}).get('cookies') != raw:
+                    return False
+                old_user = self.config['baidu'].get('current_user')
+                old_client = self.client
+                self.config['baidu']['current_user'] = username
+                self.client = candidate
+                try:
+                    self._save_config(update_scheduler=False)
+                except Exception:
+                    self.config['baidu']['current_user'] = old_user
+                    self.client = old_client
+                    raise
+                self._user_info_cache = {'user_name': username, 'quota': {
+                    'total': result['quota']['total'], 'used': result['quota']['used']}}
+                self._user_info_cache_time = time.time()
             return True
-            
-        except Exception as e:
-            logger.error(f"切换用户失败: {str(e)}")
+        except Exception:
+            logger.warning('百度账号切换未完成，保留原账号')
             return False
-            
+
     def remove_user(self, username):
-        """删除用户"""
+        """Delete saved credentials only; tasks and transfer history stay shared."""
         try:
-            if username not in self.config['baidu']['users']:
-                raise ValueError(f"用户 {username} 不存在")
-                
-            # 不能删除当前用户
-            if username == self.config['baidu']['current_user']:
-                raise ValueError("不能删除当前使用的用户")
-                
-            del self.config['baidu']['users'][username]
-            self._save_config()
-            
-            logger.success(f"已删除用户: {username}")
+            with self._client_lock:
+                if username == self.config['baidu'].get('current_user'):
+                    return False
+                if username not in self.config['baidu']['users']:
+                    return False
+                old = self.config['baidu']['users'].pop(username)
+                try:
+                    self._save_config(update_scheduler=False)
+                except Exception:
+                    self.config['baidu']['users'][username] = old
+                    raise
+                getattr(self, '_account_checks', {}).pop(username, None)
             return True
-            
-        except Exception as e:
-            logger.error(f"删除用户失败: {str(e)}")
+        except Exception:
+            logger.warning('删除百度账号未完成，保留原配置')
             return False
-            
+
+    def _account_check(self, username, user):
+        from hashlib import sha256
+        saved = getattr(self, '_account_checks', {}).get(username)
+        if saved and saved[0] == sha256(user.get('cookies', '').encode()).hexdigest():
+            return saved[1]
+        return {}
+
     def list_users(self):
         """获取用户列表"""
         users = []
@@ -413,7 +467,9 @@ class BaiduStorage:
             users.append({
                 'username': username,
                 'name': user_info.get('name', username),
-                'user_id': user_info.get('user_id', username)
+                'user_id': user_info.get('user_id', username),
+                'cookies_valid': self._account_check(username, user_info).get('valid'),
+                'quota': self._account_check(username, user_info).get('quota')
             })
         
         return users
@@ -421,19 +477,24 @@ class BaiduStorage:
     def get_user_info(self):
         """获取当前用户信息"""
         try:
-            if not self.client:
+            with self._client_lock:
+                selected_client = self.client
+                selected_account = self.config['baidu'].get('current_user')
+                cached = self._user_info_cache
+                cached_time = self._user_info_cache_time
+            if not selected_client:
                 return None
             
             # 检查缓存是否有效
             current_time = time.time()
-            if (self._user_info_cache is not None and 
-                current_time - self._user_info_cache_time < self._cache_ttl):
+            if (cached is not None and
+                current_time - cached_time < self._cache_ttl):
                 logger.debug("使用缓存的用户信息，跳过API调用")
-                return self._user_info_cache
+                return cached
             
             # 首先尝试获取配额信息
             try:
-                quota_info = self.client.quota()
+                quota_info = selected_client.quota()
                 if isinstance(quota_info, (tuple, list)):
                     quota = {
                         'total': quota_info[0],
@@ -447,7 +508,7 @@ class BaiduStorage:
                 try:
                     # 1. 先获取网盘用户信息
                     logger.debug("开始获取网盘用户信息...")
-                    pan_info = self.client._baidupcs.user_info()
+                    pan_info = selected_client._baidupcs.user_info()
                     logger.debug(f"网盘用户信息: {pan_info}")
                     
                     user_id = int(pan_info["user"]["id"])
@@ -461,8 +522,10 @@ class BaiduStorage:
                     }
                     
                     # 更新缓存
-                    self._user_info_cache = user_info
-                    self._user_info_cache_time = current_time
+                    with self._client_lock:
+                        if self.client is selected_client and self.config['baidu'].get('current_user') == selected_account:
+                            self._user_info_cache = user_info
+                            self._user_info_cache_time = current_time
                     
                     return user_info
                     
@@ -475,8 +538,10 @@ class BaiduStorage:
                         'user_id': None,
                         'quota': quota
                     }
-                    self._user_info_cache = user_info
-                    self._user_info_cache_time = current_time
+                    with self._client_lock:
+                        if self.client is selected_client and self.config['baidu'].get('current_user') == selected_account:
+                            self._user_info_cache = user_info
+                            self._user_info_cache_time = current_time
                     
                     return user_info
                     

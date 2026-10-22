@@ -3,8 +3,8 @@ WORKDIR /build
 COPY frontend/package*.json ./
 RUN npm ci
 COPY frontend/ ./
-COPY scripts/test_task_identity.cjs ./scripts/test_task_identity.cjs
-RUN TYPESCRIPT_PATH=/build/node_modules/typescript TASK_STORE_PATH=/build/src/stores/tasks.ts node scripts/test_task_identity.cjs && npm run build:prod
+COPY scripts/test_task_identity.cjs scripts/test_user_accounts.cjs ./scripts/
+RUN TYPESCRIPT_PATH=/build/node_modules/typescript TASK_STORE_PATH=/build/src/stores/tasks.ts node scripts/test_task_identity.cjs && TYPESCRIPT_PATH=/build/node_modules/typescript USER_STORE_PATH=/build/src/stores/users.ts node scripts/test_user_accounts.cjs && npm run build:prod
 
 FROM python:3.10-slim-bookworm AS wheels
 WORKDIR /build
@@ -29,7 +29,7 @@ COPY film_index/ ./film_index/
 COPY --from=frontend /build/dist/ ./film_index/frontend/dist/
 COPY source.zip /opt/film-index/source.zip
 LABEL org.opencontainers.image.title="Film Index" \
-      org.opencontainers.image.version="3.0.6" \
+      org.opencontainers.image.version="3.0.7" \
       org.opencontainers.image.source="https://github.com/dandan658/film-index-hub" \
       org.opencontainers.image.licenses="AGPL-3.0-only"
 EXPOSE 5000

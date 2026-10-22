@@ -99,7 +99,7 @@ export interface User {
   username: string
   is_current: boolean
   quota?: UserQuota
-  cookies_valid?: boolean
+  cookies_valid?: boolean | null
   last_active?: string
 }
 

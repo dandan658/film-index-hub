@@ -60,5 +60,13 @@
   "thumbnail_timeout_and_partial_cleanup": "passed",
   "thumbnail_fast_input_seek_and_existing_image_preservation": "passed",
   "episode_still_exact_identity_and_language_neutral_fallback": "passed with simulated TMDB responses",
-  "scraper_no_decode_on_tmdb_success_or_lookup_error": "passed in real scraper pipeline"
+  "scraper_no_decode_on_tmdb_success_or_lookup_error": "passed in real scraper pipeline",
+  "pending_release": {
+    "version": "3.0.7",
+    "account_storage_unit_checks_passed": 8,
+    "frontend_account_store_checks": "passed",
+    "frontend_production_build": "passed",
+    "full_authenticated_api_checks": "pending Linux image CI",
+    "changes": "visible account check/delete controls, top-left account switch, validate-before-switch and isolated quota cache"
+  }
 }

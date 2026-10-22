@@ -28,8 +28,13 @@
           <div class="stat-label">失效用户</div>
         </div>
       </div>
+      <div class="stat-card"><div class="stat-content">
+        <div class="stat-number">{{ userStats.unchecked }}</div>
+        <div class="stat-label">待检测用户</div>
+      </div></div>
     </div>
 
+    <p class="form-help">有效/失效状态以账号检测结果为准；删除当前账号前，请先在左上角切换到其他账号。</p>
     <!-- 用户列表 -->
     <div class="users-list">
       <el-card v-loading="loading">
@@ -44,34 +49,14 @@
               <div class="user-info">
                 <h3 class="username">{{ user.username }}</h3>
                 <el-tag v-if="user.is_current" type="success" size="small">当前用户</el-tag>
-                <el-tag v-else-if="user.cookies_valid === false" type="danger" size="small">失效</el-tag>
+                <el-tag v-if="user.cookies_valid === false" type="danger" size="small">失效</el-tag>
+                <el-tag v-else-if="user.cookies_valid === true" type="success" size="small">检测有效</el-tag>
+                <el-tag v-else type="info" size="small">待检测</el-tag>
               </div>
               <div class="user-actions">
-                <el-dropdown trigger="click">
-                  <el-button type="text">
-                    <el-icon><MoreFilled /></el-icon>
-                  </el-button>
-                  <template #dropdown>
-                    <el-dropdown-menu>
-                      <el-dropdown-item v-if="!user.is_current" @click="switchUser(user.username)">
-                        切换用户
-                      </el-dropdown-item>
-                      <el-dropdown-item @click="editUser(user)">
-                        编辑用户
-                      </el-dropdown-item>
-                      <el-dropdown-item @click="getUserCookies(user.username)">
-                        查看Cookies
-                      </el-dropdown-item>
-                      <el-dropdown-item 
-                        v-if="!user.is_current"
-                        @click="deleteUser(user.username)"
-                        style="color: #f56c6c"
-                      >
-                        删除用户
-                      </el-dropdown-item>
-                    </el-dropdown-menu>
-                  </template>
-                </el-dropdown>
+                <el-button size="small" :loading="checkingUsers.includes(user.username)" @click="checkUser(user.username)">检测账号</el-button>
+                <el-button size="small" @click="editUser(user)">编辑</el-button>
+                <el-button size="small" type="danger" plain :disabled="user.is_current || deletingUser === user.username" :loading="deletingUser === user.username" :title="user.is_current ? '请先切换到其他账号，再删除此账号' : '删除此百度账号'" @click="deleteUser(user.username)">删除</el-button>
               </div>
             </div>
             
@@ -81,7 +66,7 @@
                 <span class="quota-value">{{ user.quota.used_formatted }} / {{ user.quota.total_formatted }}</span>
               </div>
               <el-progress 
-                :percentage="Math.round((user.quota.used / user.quota.total) * 100)"
+                :percentage="user.quota.total > 0 ? Math.min(100, Math.round((user.quota.used / user.quota.total) * 100)) : 0"
                 :stroke-width="6"
                 :show-text="false"
               />
@@ -156,6 +141,19 @@ const showAddUserDialog = ref(false)
 const userFormRef = ref<FormInstance>()
 const editingUser = ref<User | null>(null)
 const submitting = ref(false)
+const checkingUsers = ref<string[]>([])
+const deletingUser = ref('')
+const checkUser = async (username: string) => {
+  if (checkingUsers.value.includes(username)) return
+  checkingUsers.value.push(username)
+  try {
+    const result = await userStore.checkUser(username)
+    if (result.valid === true) ElMessage.success('账号有效')
+    else if (result.valid === false) ElMessage.warning(result.message || '账号已失效，请更新 Cookies')
+    else ElMessage.warning(result.message || '暂时无法检测，请稍后重试')
+  } catch (error) { ElMessage.error(`检测失败：${error}`) }
+  finally { checkingUsers.value = checkingUsers.value.filter(item => item !== username) }
+}
 
 const userForm = ref({
   username: '',
@@ -173,15 +171,6 @@ const userFormRules = {
 }
 
 // 方法
-const switchUser = async (username: string) => {
-  try {
-    await userStore.switchUser(username)
-    ElMessage.success(`已切换到用户：${username}`)
-  } catch (error) {
-    ElMessage.error(`切换用户失败：${error}`)
-  }
-}
-
 const openAddUserDialog = () => {
   resetUserForm()
   showAddUserDialog.value = true
@@ -221,37 +210,14 @@ const deleteUser = async (username: string) => {
       }
     )
     
+    deletingUser.value = username
     await userStore.deleteUser(username)
     ElMessage.success('用户已删除')
   } catch (error) {
-    if (error !== 'cancel') {
+    if (error !== 'cancel' && error !== 'close') {
       ElMessage.error(`删除用户失败：${error}`)
     }
-  }
-}
-
-const getUserCookies = async (username: string) => {
-  try {
-    const cookies = await userStore.getUserCookies(username)
-    
-    ElMessageBox.alert(
-      cookies,
-      `用户 ${username} 的Cookies`,
-      {
-        confirmButtonText: '复制',
-        callback: async () => {
-          try {
-            await navigator.clipboard.writeText(cookies)
-            ElMessage.success('Cookies已复制到剪贴板')
-          } catch {
-            ElMessage.warning('复制失败，请手动复制')
-          }
-        }
-      }
-    )
-  } catch (error) {
-    ElMessage.error(`获取Cookies失败：${error}`)
-  }
+  } finally { deletingUser.value = '' }
 }
 
 const handleUserSubmit = async () => {
@@ -388,9 +354,12 @@ onMounted(async () => {
   margin-bottom: 16px;
 }
 
-.user-info {
-  flex: 1;
-}
+.user-info { flex: 1; min-width: 0; }
+.user-info .el-tag { margin: 4px 4px 0 0; }
+.user-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.user-actions .el-button + .el-button { margin-left: 0; }
+.user-header { gap: 12px; flex-wrap: wrap; }
+.username { overflow-wrap: anywhere; }
 
 .username {
   font-size: 18px;

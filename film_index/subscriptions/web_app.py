@@ -848,59 +848,38 @@ def add_user():
         return jsonify({'success': True, 'message': '添加用户成功'})
     return jsonify({'success': False, 'message': '添加用户失败'})
 
+@app.route('/api/user/check', methods=['POST'])
+@login_required
+@handle_api_error
+def check_user():
+    data = request.get_json(silent=True) or {}
+    username = data.get('username')
+    if not isinstance(username, str) or not username.strip():
+        return jsonify({'success': False, 'message': '用户名不能为空'}), 400
+    if not storage:
+        return jsonify({'success': False, 'message': '存储未初始化'}), 503
+    if username not in storage.config.get('baidu', {}).get('users', {}):
+        return jsonify({'success': False, 'message': '账号不存在'}), 404
+    result = storage.check_user(username)
+    return jsonify({'success': True, **result})
+
+
 @app.route('/api/user/switch', methods=['POST'])
 @login_required
 @handle_api_error
 def switch_user():
-    """切换用户"""
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     username = data.get('username')
-    
-    if not username:
-        return jsonify({'success': False, 'message': '用户名不能为空'})
-        
-    try:
-        if storage.switch_user(username):
-            # 获取完整的用户信息
-            user = storage.get_user(username)
-            if not user:
-                return jsonify({'success': False, 'message': f'用户 {username} 不存在'})
-            
-            # 重新初始化应用
-            init_app()
-            
-            # 切换用户后立即获取用户配额信息
-            try:
-                if storage and hasattr(storage, 'get_user_info'):
-                    user_info = storage.get_user_info()
-                    if user_info and 'quota' in user_info:
-                        quota = user_info['quota']
-                        total_gb = round(quota.get('total', 0) / (1024**3), 2)
-                        used_gb = round(quota.get('used', 0) / (1024**3), 2)
-                        logger.info(f"已切换到用户: {username}，网盘总空间: {total_gb}GB, 已使用: {used_gb}GB")
-                        
-                        # 将配额信息添加到用户数据中
-                        user['quota'] = {
-                            'total': quota.get('total', 0),
-                            'used': quota.get('used', 0),
-                            'total_gb': total_gb,
-                            'used_gb': used_gb,
-                            'percent': round(quota.get('used', 0) / quota.get('total', 1) * 100, 2) if quota.get('total', 0) > 0 else 0
-                        }
-            except Exception as e:
-                logger.error(f"切换用户后获取配额信息失败: {str(e)}")
-            
-            # 返回更新后的状态
-            return jsonify({
-                'success': True, 
-                'message': '切换用户成功',
-                'current_user': user,
-                'login_status': storage.is_valid()
-            })
-        return jsonify({'success': False, 'message': '切换用户失败'})
-    except Exception as e:
-        logger.error(f"切换用户失败: {str(e)}")
-        return jsonify({'success': False, 'message': f'切换用户失败: {str(e)}'})
+    if not isinstance(username, str) or not username.strip():
+        return jsonify({'success': False, 'message': '用户名不能为空'}), 400
+    if not storage:
+        return jsonify({'success': False, 'message': '存储未初始化'}), 503
+    if not storage.switch_user(username):
+        return jsonify({'success': False, 'message': '切换失败，请检测账号登录状态或稍后重试'})
+    # Public account summaries deliberately exclude credentials; do not recreate storage/scheduler.
+    user = next((item for item in storage.list_users() if item['username'] == username), None)
+    return jsonify({'success': True, 'message': '切换用户成功', 'current_user': user, 'login_status': True})
+
 
 @app.route('/api/user/delete', methods=['POST'])
 @login_required
@@ -1753,7 +1732,7 @@ def reset_backend_password(username):
 @handle_api_error
 def check_version():
     if True:
-        return jsonify({'success': True, 'version': 'v3.0.6', 'latest_version': 'v3.0.6', 'has_update': False, 'release_notes': '统一订阅与媒体整理工作台'})
+        return jsonify({'success': True, 'version': 'v3.0.7', 'latest_version': 'v3.0.7', 'has_update': False, 'release_notes': '统一订阅与媒体整理工作台'})
     """检查最新版本"""
     try:
         import feedparser

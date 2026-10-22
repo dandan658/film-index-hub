@@ -72,6 +72,10 @@ export class ApiService {
     return httpClient.post('/api/user/delete', { username })
   }
 
+  async checkUser(username: string): Promise<ApiResponse<any>> {
+    return httpClient.post('/api/user/check', { username })
+  }
+
   async getUserQuota(): Promise<ApiResponse<any>> {
     return httpClient.get('/api/user/quota')
   }

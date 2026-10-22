@@ -8,7 +8,17 @@
           <h1 class="app-title">Film Index</h1>
         </div>
         
-        <!-- 移动端菜单按钮已移除，使用底部导航代替 -->
+        <el-select
+          :model-value="currentUser || undefined"
+          class="baidu-account-switch"
+          placeholder="切换百度账号"
+          aria-label="切换百度账号"
+          :disabled="switching || users.length === 0"
+          :loading="switching"
+          @change="handleAccountSwitch"
+        >
+          <el-option v-for="account in users" :key="account.username" :label="account.username" :value="account.username" />
+        </el-select>
       </div>
       
       <!-- 右侧：用户信息和操作 -->
@@ -127,7 +137,12 @@ const router = useRouter()
 const authStore = useAuthStore()
 const userStore = useUserStore()
 const versionStore = useVersionStore()
-const { currentUser } = storeToRefs(userStore)
+const { currentUser, users, switching } = storeToRefs(userStore)
+const handleAccountSwitch = async (username: string) => {
+  try {
+    if (await userStore.switchUser(username)) ElMessage.success(`已切换百度账号：${username}`)
+  } catch (error) { ElMessage.error(`切换账号失败：${error}`) }
+}
 const { hasUpdate } = storeToRefs(versionStore)
 const { isRunning: pollingStatus } = usePolling()
 
@@ -224,6 +239,8 @@ const loadNotifications = async () => {
   padding: 0 20px;
   max-width: 100%;
 }
+
+.baidu-account-switch { width: 190px; max-width: 32vw; }
 
 .header-left {
   display: flex;
