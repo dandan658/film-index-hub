@@ -1,9 +1,9 @@
 {
-  "version": "3.0.6",
-  "tested_revision": "494529e87087ff9d4ef5cdfc318ec025de7eeae1",
-  "actions_url": "https://github.com/dandan658/film-index-hub/actions/runs/39536947822",
+  "version": "3.0.7",
+  "tested_revision": "8ba180d96c6a1694bf2095a603014a4ee2aa9630",
+  "actions_url": "https://github.com/dandan658/film-index-hub/actions/runs/39701893834",
   "real_linux_container_tests": "passed",
-  "subscription_regression_tests": 89,
+  "subscription_regression_tests": 100,
   "parallel_database_requests": 24,
   "parallel_workers": 8,
   "same_flask_application_and_pid_for_both_features": true,
@@ -29,14 +29,7 @@
   "nas_data_operations": "not performed",
   "gateway": false,
   "legacy_image_dependency": false,
-  "published_image": {
-    "image": "ghcr.io/dandan658/film-index-hub:latest",
-    "anonymous_access": true,
-    "platforms": [
-      "linux/amd64"
-    ],
-    "digest": "sha256:788dcbff488256f53c5769e2c18331f93f6130a7fd7aca8ab61481b7ebfc9330"
-  },
+  "published_image": "ghcr.io/dandan658/film-index-hub:3.0.7",
   "image_command": [
     "python",
     "-m",
@@ -61,12 +54,17 @@
   "thumbnail_fast_input_seek_and_existing_image_preservation": "passed",
   "episode_still_exact_identity_and_language_neutral_fallback": "passed with simulated TMDB responses",
   "scraper_no_decode_on_tmdb_success_or_lookup_error": "passed in real scraper pipeline",
-  "pending_release": {
-    "version": "3.0.7",
-    "account_storage_unit_checks_passed": 8,
-    "frontend_account_store_checks": "passed",
-    "frontend_production_build": "passed",
-    "full_authenticated_api_checks": "pending Linux image CI",
-    "changes": "visible account check/delete controls, top-left account switch, validate-before-switch and isolated quota cache"
-  }
+  "baidu_account_management": {
+    "visible_check_edit_delete_buttons": "implemented",
+    "top_left_account_switch": "implemented",
+    "authentication_and_current_account_deletion_protection": "passed in Linux container",
+    "probe_preserves_active_account": "passed",
+    "switch_failure_preserves_previous_account": "passed",
+    "inflight_quota_cache_isolation": "passed",
+    "network_failure_is_not_invalid_credentials": "passed",
+    "frontend_store_regression": "passed in Docker frontend build"
+  },
+  "published_image_digest": "sha256:adf04f885dfd75d8518d22dfb75d49a4e7c012eec7801307468190f53917dd2d",
+  "latest_and_version_tag_same_digest": true,
+  "resource_measurement_note": "Existing idle_resource_sample is the retained v3.0.6 measurement, not a new v3.0.7 measurement."
 }
