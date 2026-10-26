@@ -1,5 +1,10 @@
+import os
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import Mock, patch
+
+os.environ.setdefault('NASTOOL_CONFIG', str(Path(tempfile.mkdtemp(prefix='film-index-schedule-')) / 'config.yaml'))
 
 
 class MediaSyncScheduleTests(unittest.TestCase):
@@ -19,7 +24,7 @@ class MediaSyncScheduleTests(unittest.TestCase):
                         patch.object(module, 'BackgroundScheduler', return_value=jobs), \
                         patch.object(module, 'MetaHelper'), \
                         patch.object(module, 'Sync'):
-                    instance = module.Scheduler.__new__(module.Scheduler)
+                    instance = module.Scheduler()
                     instance._media = {}
                     instance.run_service()
                 sync_calls = [call for call in jobs.add_job.call_args_list
@@ -38,7 +43,7 @@ class MediaSyncScheduleTests(unittest.TestCase):
                     patch.object(module, 'Sync', return_value=sync), \
                     patch.object(module.log, 'info') as info:
                 sync.transfer_all_sync.return_value = result
-                module.Scheduler._run_directory_sync()
+                module.Scheduler()._run_directory_sync()
                 self.assertTrue(any(message in call.args[0] for call in info.call_args_list))
 
 
