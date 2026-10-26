@@ -50,6 +50,11 @@ html body .app-layout :is(.cron-schedule-item,.cron-schedule-item:hover,.notific
 html body .task-runner-dialog :is(.status-progress,.files-list,.logs-container,.task-info-section) { background:var(--inset-surface); border-color:var(--glass-border); border-radius:16px; }
 html body .task-runner-dialog :is(.section-title,.info-item .value,.current-message,.log-message) { color:var(--text-primary); }
 html body .task-runner-dialog :is(.info-item .label,.elapsed-time,.file-size) { color:var(--text-secondary); }
+html body .task-runner-dialog .logs-section { border:1px solid var(--glass-border); border-radius:20px; background:var(--liquid-surface); box-shadow:var(--liquid-shadow); padding:16px; }
+html body .task-runner-dialog .logs-container { background:rgba(255,255,255,.36); border:1px solid var(--glass-border); border-radius:15px; }
+html body .task-runner-dialog .log-entry { background:transparent; border-color:var(--glass-separator); }
+html body .task-runner-dialog .log-entry:hover { background:rgba(255,255,255,.44); }
+html body .task-runner-dialog .log-time { color:var(--text-secondary); font-variant-numeric:tabular-nums; }
 @supports(backdrop-filter:blur(1px)) {
   html body .app-layout :is(.toolbar,.task-list-container,.settings-content,.stat-card,.system-info,.dashboard .quick-actions,.user-card) { backdrop-filter:blur(12px) saturate(145%); -webkit-backdrop-filter:blur(12px) saturate(145%); }
   html body .app-layout :is(.app-header,.app-sidebar,.app-bottom-nav),body .el-dialog,body .el-drawer,body .el-message-box,body .el-popper.is-light { backdrop-filter:blur(24px) saturate(155%); -webkit-backdrop-filter:blur(24px) saturate(155%); }

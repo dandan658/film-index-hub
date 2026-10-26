@@ -179,7 +179,7 @@ def _build_task_stream_snapshot(task):
     _ensure_task_runtime_state()
     task_order = task.get('order') if task else None
     log_key = (task.get('task_uid') or task_order) if task else None
-    logs = list(app.task_logs.get(log_key, [])[-300:]) if log_key else []
+    logs = _read_task_logs(log_key)
     return {
         'task': task,
         'logs': logs,
@@ -201,19 +201,40 @@ def _append_task_log(task_order, message, level='INFO', task_uid=None):
     stable_uid = _get_task_uid(task_order, task_uid)
     _ensure_task_runtime_state()
     log_entry = {
-        'timestamp': datetime.now().strftime('%H:%M:%S'),
+        'timestamp': datetime.now().astimezone().isoformat(timespec='seconds'),
         'level': level,
         'message': message,
         'task_order': task_order
     }
     log_entry['task_uid'] = stable_uid
     log_key = stable_uid or task_order
+    if stable_uid:
+        from film_index.subscriptions.task_execution_log import append
+        try:
+            append(stable_uid, log_entry)
+        except OSError as error:
+            logger.warning(f'保存任务执行日志失败: {error}')
     app.task_logs.setdefault(log_key, []).append(log_entry)
     if len(app.task_logs[log_key]) > 1000:
         del app.task_logs[log_key][:-1000]
     if stable_uid:
         _publish_task_event(stable_uid, 'log', log_entry)
     return log_entry
+
+
+def _read_task_logs(log_key):
+    if not log_key:
+        return []
+    from film_index.subscriptions.task_execution_log import read
+    try:
+        persisted = read(log_key) if isinstance(log_key, str) else []
+    except OSError as error:
+        logger.warning(f'读取任务执行日志失败: {error}')
+        persisted = []
+    if persisted:
+        return persisted
+    _ensure_task_runtime_state()
+    return list(app.task_logs.get(log_key, [])[-300:])
 
 
 def _publish_task_completed(task_order, task_uid=None):
@@ -696,8 +717,7 @@ def execute_task():
     update_status('running', '正在执行任务')
     _publish_task_status(task_order, task_uid)
 
-    # 清理旧的任务日志，避免显示历史日志
-    app.task_logs[task_uid or task_order] = []
+    # 保留每次执行记录，方便查找定时运行和手动运行的历史。
     _append_task_log(task_order, f'开始执行任务: {task_name}', task_uid=task_uid)
     
     # 立即返回响应，然后异步执行任务
@@ -1732,7 +1752,7 @@ def reset_backend_password(username):
 @handle_api_error
 def check_version():
     if True:
-        return jsonify({'success': True, 'version': 'v3.0.8', 'latest_version': 'v3.0.8', 'has_update': False, 'release_notes': '统一订阅与媒体整理工作台'})
+        return jsonify({'success': True, 'version': 'v3.0.9', 'latest_version': 'v3.0.9', 'has_update': False, 'release_notes': '统一订阅与媒体整理工作台'})
     """检查最新版本"""
     try:
         import feedparser
@@ -2018,12 +2038,7 @@ def get_task_log(task_id):
             app._log_cleanup_counter = 0
 
         # 从全局变量中获取任务日志
-        if hasattr(app, 'task_logs') and task_order in app.task_logs:
-            logs = app.task_logs[task_order][-300:]
-            return jsonify({'success': True, 'logs': logs})
-        else:
-            # 如果没有找到任务日志，返回空列表
-            return jsonify({'success': True, 'logs': []})
+        return jsonify({'success': True, 'logs': _read_task_logs(task_order)})
     except Exception as e:
         logger.error(f"获取任务日志失败: {str(e)}")
         return jsonify({'success': False, 'message': f'获取任务日志失败: {str(e)}'})

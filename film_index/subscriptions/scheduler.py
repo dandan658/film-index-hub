@@ -50,10 +50,7 @@ class TaskScheduler:
     def _get_current_tasks(self):
         """获取当前的任务列表"""
         try:
-            # 重新加载配置以获取最新任务
-            with open('config/config.json', 'r', encoding='utf-8') as f:
-                config = json.load(f)
-            return config['baidu']['tasks']
+            return self.storage.list_tasks()
         except Exception as e:
             logger.error(f"获取任务列表失败: {str(e)}")
             return []
@@ -536,6 +533,7 @@ class TaskScheduler:
         # 使用锁防止同一任务被并发执行
         if not self._execution_lock.acquire(blocking=False):
             logger.warning(f"任务已在执行中，跳过此次执行: {task.get('name', task.get('url', '未知任务'))}")
+            self._task_log(task, '定时执行跳过：上一项任务仍在执行', 'WARNING')
             return False
             
         try:
@@ -560,16 +558,16 @@ class TaskScheduler:
             task_id = task_order - 1  # 转换为前端使用的task_id
             task_name = current_task.get('name', f'任务{task_order}')
             logger.info(f"开始执行任务: {task_name}")
-            logger.info(f"分享链接: {current_task.get('url', '')}")
-            logger.info(f"保存目录: {current_task.get('save_dir', '')}")
-            logger.info(f"提取码: {current_task.get('pwd', '')}")
-            logger.info("")
+            self._task_log(current_task, f'定时执行开始：{task_name}')
+            self.storage.update_task_status_by_order(task_order, 'running', '定时执行中', task_uid=current_task.get('task_uid'))
             
             # 确保存储实例可用
             if not self.storage.is_valid():
                 logger.warning("存储实例状态异常，尝试刷新登录状态")
                 if not self.storage.refresh_login():
                     logger.error("刷新登录状态失败")
+                    self._task_log(current_task, '定时执行失败：百度账号登录状态无法刷新', 'ERROR')
+                    self.storage.update_task_status_by_order(task_order, 'failed', '百度账号登录状态无法刷新', task_uid=current_task.get('task_uid'))
                     return False
 
             # 更新结果字典的结构
@@ -597,6 +595,7 @@ class TaskScheduler:
                 error_msg = "任务缺少必要信息(url或save_dir)"
                 logger.error(error_msg)
                 self.storage.update_task_status_by_order(task_order, 'failed', error_msg)
+                self._task_log(current_task, f'定时执行失败：{error_msg}', 'ERROR')
                 return False
 
             result = self.storage.transfer_share(
@@ -617,6 +616,7 @@ class TaskScheduler:
                             'skipped',
                             '没有新文件需要转存'
                         )
+                        self._task_log(current_task, '定时执行完成：没有新文件需要转存')
                     else:
                         self.storage.update_task_status_by_order(
                             task_order,
@@ -624,6 +624,7 @@ class TaskScheduler:
                             '转存成功',
                             transferred_files=result.get('transferred_files', [])
                         )
+                        self._task_log(current_task, '定时执行成功：文件已转存')
                         # 添加到成功列表
                         results['success'].append(current_task)
                         # 更新转存文件列表
@@ -635,6 +636,7 @@ class TaskScheduler:
                         'failed',
                         result.get('error', '转存失败')
                     )
+                    self._task_log(current_task, f"定时执行失败：{result.get('error', '转存失败')}", 'ERROR')
                     current_task['error'] = result.get('error')
                     results['failed'].append(current_task)
                 
@@ -646,10 +648,12 @@ class TaskScheduler:
                 
             except Exception as e:
                 logger.error(f"更新任务状态失败: {str(e)}")
+                self._task_log(current_task, '定时执行结果保存失败', 'ERROR')
                 return False
             
         except Exception as e:
             logger.error(f"执行任务失败: {str(e)}")
+            self._task_log(task, f'定时执行异常：{e}', 'ERROR')
             try:
                 self.storage.update_task_status_by_order(task_order, 'failed', str(e))
                 # 添加失败通知到缓冲区
@@ -665,6 +669,11 @@ class TaskScheduler:
         finally:
             # 释放锁
             self._execution_lock.release()
+
+    def _task_log(self, task, message, level='INFO'):
+        sink = getattr(self.storage, 'task_log_callback', None)
+        if callable(sink):
+            sink(task.get('order'), message, level, task.get('task_uid'))
 
     def _add_to_notification_buffer(self, results):
         """将任务结果添加到通知缓冲区

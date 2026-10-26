@@ -1928,6 +1928,8 @@ class BaiduStorage:
                         task['status'] = 'error'  # 如果有错误信息，强制设置为错误状态
                     elif status == 'error' and message:
                         task['error'] = message
+                    elif status != 'running':
+                        task.pop('error', None)
                     if transferred_files:
                         task['transferred_files'] = transferred_files
                     

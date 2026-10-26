@@ -101,7 +101,7 @@
         </h3>
         <div class="logs-container" ref="logsContainer">
           <div v-if="logs.length === 0" class="no-logs">
-            暂无日志信息（显示本次服务运行期间最近 300 条记录）
+            暂无执行记录（保留最近 300 条，服务重启后仍可查看）
           </div>
           <div
             v-for="(log, index) in logs"
@@ -338,7 +338,7 @@ const formatLogTime = (timestamp: string) => {
     if (isNaN(date.getTime())) {
       return timestamp
     }
-    return date.toLocaleTimeString()
+    return date.toLocaleString('zh-CN', { hour12: false })
   } catch {
     return timestamp
   }
@@ -781,7 +781,7 @@ onUnmounted(() => {
 
 .log-entry {
   display: grid;
-  grid-template-columns: 60px 50px minmax(0, 1fr);
+  grid-template-columns: 140px 50px minmax(0, 1fr);
   align-items: start;
   gap: 8px;
   width: 100%;
@@ -795,7 +795,7 @@ onUnmounted(() => {
 
 .log-time {
   color: #909399;
-  min-width: 60px;
+  min-width: 140px;
   flex-shrink: 0;
 }
 
