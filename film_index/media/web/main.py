@@ -160,9 +160,11 @@ def service():
         ('sync', '目录同步', True), ('blacklist', '清理整理缓存', False),
         ('nametest', '名称识别测试', False),
         ('nettest', '网络连通性测试', False), ('backup', '备份&恢复', False)]
+    sync_interval = (Config().get_config('sync') or {}).get('full_sync_interval') or 0
     tasks = [dict(id=id, name=name, state='ON' if enabled else 'OFF', time='', svg=svg, color='blue',
                   targets=ModuleConf.NETTEST_TARGETS if id == 'nettest' else {}) for id, name, enabled in cards]
-    return render_template('service.html', Count=len(tasks), RuleGroups={}, SchedulerTasks=tasks)
+    return render_template('service.html', Count=len(tasks), RuleGroups={}, SchedulerTasks=tasks,
+                           SyncInterval=sync_interval)
 
 
 # 历史记录页面

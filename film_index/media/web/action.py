@@ -2,6 +2,7 @@ import base64
 import datetime
 import importlib
 import json
+import math
 import os.path
 import re
 import shutil
@@ -388,9 +389,11 @@ class WebAction:
             log.info('【Sync】目录同步任务开始')
             MessageCenter().insert_system_message('INFO', '目录同步已开始', '可在目录同步日志中查看进度')
             try:
-                commands[item]()
-                log.info('【Sync】目录同步任务结束')
-                MessageCenter().insert_system_message('INFO', '目录同步任务结束', '具体文件处理结果请查看目录同步日志')
+                if commands[item]():
+                    log.info('【Sync】目录同步任务结束')
+                    MessageCenter().insert_system_message('INFO', '目录同步任务结束', '具体文件处理结果请查看目录同步日志')
+                else:
+                    log.info('【Sync】已有全量目录同步正在运行，本次手动请求跳过')
             except Exception:
                 log.error('【Sync】目录同步任务异常，请检查配置和后台日志')
                 MessageCenter().insert_system_message('ERROR', '目录同步异常', '请查看目录同步日志和容器日志')
@@ -1198,6 +1201,13 @@ class WebAction:
             if key == "test" and value:
                 config_test = True
                 continue
+            if key == 'sync.full_sync_interval':
+                try:
+                    interval = float(value)
+                    if not math.isfinite(interval) or interval < 0 or interval > 168:
+                        raise ValueError()
+                except (ValueError, TypeError):
+                    return {'code': 1, 'msg': '目录同步周期须为 0 到 168 小时；0 表示关闭'}
             # 生效配置
             cfg = self.set_config_value(cfg, key, value)
 

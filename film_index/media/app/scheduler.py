@@ -36,6 +36,19 @@ class Scheduler:
 
     def run_service(self):
         self.SCHEDULER = BackgroundScheduler(timezone=Config().get_timezone(), executors={'default': ThreadPoolExecutor(4)})
+        sync_interval = (Config().get_config('sync') or {}).get('full_sync_interval')
+        if sync_interval not in (None, ''):
+            try:
+                hours = float(sync_interval)
+                if not math.isfinite(hours) or hours < 0 or hours > 168:
+                    raise ValueError('out of range')
+                if hours > 0:
+                    self.SCHEDULER.add_job(database_task(self._run_directory_sync), 'interval',
+                                           hours=hours, id='directory_full_sync',
+                                           max_instances=1, coalesce=True)
+                    log.info('【Sync】定时全量目录同步已启用，间隔 %s 小时' % hours)
+            except (ValueError, TypeError):
+                log.warn('定时目录同步周期无效，跳过该服务')
         if self._media and self._media.get('mediasync_interval'):
             try:
                 hours = float(self._media['mediasync_interval'])
@@ -46,6 +59,18 @@ class Scheduler:
         self.SCHEDULER.add_job(database_task(Sync().transfer_mon_files), 'interval', seconds=SYNC_TRANSFER_INTERVAL)
         self.SCHEDULER.add_job(database_task(MetaHelper().delete_unknown_meta), 'interval', hours=META_DELETE_UNKNOWN_INTERVAL)
         self.SCHEDULER.start()
+
+    @staticmethod
+    def _run_directory_sync():
+        log.info('【Sync】定时目录同步任务开始')
+        try:
+            if Sync().transfer_all_sync():
+                log.info('【Sync】定时目录同步任务结束')
+            else:
+                log.info('【Sync】已有目录同步正在运行，本次定时任务跳过')
+        except Exception:
+            log.error('【Sync】定时目录同步任务异常：%s' % traceback.format_exc())
+            raise
 
     def stop_service(self):
         """

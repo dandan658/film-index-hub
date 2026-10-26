@@ -7,7 +7,7 @@ import shutil
 import sqlite3
 from datetime import datetime, timezone
 
-VERSION = '3.0.9'
+VERSION = '3.0.10'
 
 
 def prepare(data_dir):

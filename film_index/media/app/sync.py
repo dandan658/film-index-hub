@@ -16,6 +16,7 @@ from film_index.media.app.utils import PathUtils, ExceptionUtils
 from film_index.media.app.utils.types import SyncType, OsType
 
 lock = threading.Lock()
+full_sync_lock = threading.Lock()
 
 
 class FileMonitorHandler(FileSystemEventHandler):
@@ -327,6 +328,16 @@ class Sync(object):
         """
         全量转移Sync目录下的文件，WEB界面点击目录同步时获发
         """
+        if not full_sync_lock.acquire(blocking=False):
+            log.info('【Sync】已有全量目录同步正在运行，本次请求跳过')
+            return False
+        try:
+            self._transfer_all_sync_unlocked(sid)
+            return True
+        finally:
+            full_sync_lock.release()
+
+    def _transfer_all_sync_unlocked(self, sid=None):
         for monpath, target_dirs in self.sync_dir_config.items():
             if not monpath:
                 continue
