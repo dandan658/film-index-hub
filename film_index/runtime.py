@@ -44,7 +44,7 @@ def create_app(data_dir=None, start_services=True):
     @app.route('/api/system/architecture')
     @subscriptions.login_required
     def architecture():
-        return {'success': True, 'version': '3.0.11', 'application_count': 1,
+        return {'success': True, 'version': '3.0.12', 'application_count': 1,
                 'process_id': os.getpid(), 'application_id': id(current_app._get_current_object()), 'features': ['subscriptions', 'media'],
                 'gateway': False}
 
@@ -92,7 +92,7 @@ def main():
 
     signal.signal(signal.SIGTERM, stop)
     signal.signal(signal.SIGINT, stop)
-    print('Film Index 3.0.11: one application, one process, port 5000', flush=True)
+    print('Film Index 3.0.12: one application, one process, port 5000', flush=True)
     from film_index.subscriptions.server_runtime import server_options
     serve(app, **server_options(5000))
 

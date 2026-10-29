@@ -9,7 +9,7 @@ export interface ApiResponse<T = any> {
 
 // 任务相关类型
 export interface Task {
-  season_folders?: { source: string; season: number; name: string; episode_offset?: number }[]
+  season_folders?: { source: string; season: number; name: string; episode_offset?: number; match_type?: 'directory' | 'filename'; top_only?: boolean }[]
   media_type?: 'other' | 'movie' | 'tv'
   flatten?: boolean
   auto_rename?: boolean
@@ -46,7 +46,7 @@ export interface ShareInfo {
 }
 
 export interface CreateTaskRequest {
-  season_folders?: { source: string; season: number; name: string; episode_offset?: number }[]
+  season_folders?: { source: string; season: number; name: string; episode_offset?: number; match_type?: 'directory' | 'filename'; top_only?: boolean }[]
   media_type?: 'other' | 'movie' | 'tv'
   flatten?: boolean
   auto_rename?: boolean
@@ -67,7 +67,7 @@ export interface CreateTaskRequest {
 }
 
 export interface UpdateTaskRequest {
-  season_folders?: { source: string; season: number; name: string; episode_offset?: number }[]
+  season_folders?: { source: string; season: number; name: string; episode_offset?: number; match_type?: 'directory' | 'filename'; top_only?: boolean }[]
   media_type?: 'other' | 'movie' | 'tv'
   flatten?: boolean
   auto_rename?: boolean

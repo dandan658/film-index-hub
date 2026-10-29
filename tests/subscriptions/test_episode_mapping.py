@@ -13,6 +13,55 @@ def task(**changes):
 
 
 class EpisodeMappingTests(unittest.TestCase):
+    def filename_task(self, **changes):
+        return task(season_folders=[dict(source='S03E*', match_type='filename',
+                                        top_only=True, season=1, name='Season 01', episode_offset=104)], **changes)
+
+    def test_top_level_filename_and_future_updates(self):
+        for source, target in [('S03E01.mp4',105), ('S03E26.mp4',130), ('s03e27.mkv',131)]:
+            self.assertEqual(destination_name(source, self.filename_task())[1], f'百炼成神 - S01E{target}' + ('.mkv' if source.endswith('mkv') else '.mp4'))
+        # Existing season-directory recognition is unchanged by the filename rule.
+        for source in ('第一季/S01E01.mp4','第二季/S02E53.mp4','第三季/S03E01.mp4'):
+            self.assertEqual(destination_name(source,self.filename_task()),destination_name(source,task(season_folders=[])))
+
+    def test_filename_disabled_and_recursive_scope(self):
+        self.assertEqual(destination_name('S03E01.mp4',self.filename_task(episode_mapping=False))[1], '百炼成神 - S03E01.mp4')
+        configured=self.filename_task()
+        configured['season_folders'][0]['top_only']=False
+        self.assertEqual(destination_name('子目录/S03E01.mp4',configured)[1], '百炼成神 - S01E105.mp4')
+
+    def test_filename_subtitle_tmdb_and_force_first(self):
+        self.assertEqual(destination_name('S03E26.chs.ass',self.filename_task(season_directories=True,tmdb_auto_season=True,_tmdb_seasons={1:156}))[1], 'Season 01/百炼成神 - S01E130.chs.ass')
+        self.assertEqual(destination_name('S03E01.mp4',self.filename_task(force_first_season=True,flatten=False))[1], 'Season 01/百炼成神 - S01E105.mp4')
+        self.assertEqual(destination_name('第二季/S02E53.mp4',self.filename_task(force_first_season=True))[1], '百炼成神 - S01E53.mp4')
+
+    def test_filename_overlap_fails_closed(self):
+        configured=self.filename_task()
+        configured['season_folders'].append(dict(source='S03E01.*',match_type='filename',season=1,episode_offset=104))
+        included,_,warning=destination_name('S03E01.mp4',configured)
+        self.assertFalse(included)
+        self.assertIn('多个文件名映射',warning)
+
+    def test_filename_overrides_directory_only_when_enabled(self):
+        configured=self.filename_task()
+        configured['season_folders'][0]['top_only']=False
+        configured['season_folders'].append(dict(source='第三季',season=3,name='Season 03'))
+        self.assertEqual(destination_name('第三季/S03E01.mp4',configured)[1], '百炼成神 - S01E105.mp4')
+        configured['episode_mapping']=False
+        self.assertEqual(destination_name('第三季/S03E01.mp4',configured)[1], '百炼成神 - S03E01.mp4')
+
+    def test_filename_rule_validation_and_edit_roundtrip(self):
+        configured=task_options(self.filename_task())
+        self.assertTrue(configured['season_folders'][0]['top_only'])
+        self.assertEqual(task_options({'name':'百炼成神'},configured)['season_folders'],configured['season_folders'])
+        for change in ({'source':'folder/S03E*'}, {'source':'S03E[0-9]*'}, {'top_only':'true'}, {'match_type':'regex'}):
+            configured=self.filename_task()
+            configured['season_folders'][0].update(change)
+            with self.assertRaises(ValueError): task_options(configured)
+        configured=self.filename_task()
+        configured['season_folders'].append(dict(configured['season_folders'][0],source='s03e*'))
+        with self.assertRaises(ValueError): task_options(configured)
+
     def test_continuous_numbering_at_every_boundary(self):
         for directory, original, target in [('第一季', 1, 1), ('第一季', 52, 52),
                                              ('第二季', 53, 53), ('第二季', 104, 104),

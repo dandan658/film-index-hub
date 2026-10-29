@@ -45,7 +45,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish the single verified image
         run: |
-          docker tag ghcr.io/dandan658/film-index-hub:latest ghcr.io/dandan658/film-index-hub:3.0.11
+          docker tag ghcr.io/dandan658/film-index-hub:latest ghcr.io/dandan658/film-index-hub:3.0.12
           push_image() {
             for attempt in 1 2 3; do
               if docker push "$1"; then return 0; fi
@@ -53,5 +53,5 @@ jobs:
               sleep 10
             done
           }
-          push_image ghcr.io/dandan658/film-index-hub:3.0.11
+          push_image ghcr.io/dandan658/film-index-hub:3.0.12
           push_image ghcr.io/dandan658/film-index-hub:latest

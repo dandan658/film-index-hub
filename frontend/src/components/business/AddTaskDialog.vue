@@ -53,9 +53,9 @@
         <el-switch v-model="form.force_first_season" @change="onForceFirstSeasonChange" />
         <div class="form-help">开启：整个订阅统一使用第一季 S01，覆盖目录、文件名和手动规则中的季数。关闭：自动识别目录和文件名的季数。集数仍按原文件识别；同名文件自动区分，不覆盖。</div>
       </el-form-item>
-      <el-form-item v-if="form.media_type === 'tv'" label="目录集数映射">
+      <el-form-item v-if="form.media_type === 'tv'" label="季集映射">
         <el-switch v-model="form.episode_mapping" @change="value => { if (value) form.auto_rename = true }" />
-        <div class="form-help">默认关闭，不影响普通订阅。仅对下方明确匹配的目录使用目标季数和集数偏移；不会按文件数量猜测。例：第三季第 1 集 +104 → S01E105。TMDB 自动分季开启时仍校验映射后的范围。</div>
+        <div class="form-help">默认关闭，不影响普通订阅。支持目录或文件名匹配；例：顶层 S03E01.mp4 +104 → S01E105。不会按文件数量猜测，TMDB 自动分季开启时仍校验目标季集。</div>
       </el-form-item>
       <el-form-item v-if="form.media_type === 'tv' && form.auto_rename && !form.force_first_season && !form.tmdb_auto_season" label="多季识别">
         <div class="form-help">自动识别各级目录中的第一季、第二季、第三季、Season 02、S03 等。优先使用手动目录规则，其次使用最近的季目录，再使用文件名中的 Sxx，最后才使用下方默认季数。目录中的季数会修正文件名里错误的 S01。</div>
@@ -82,18 +82,25 @@
         <div style="width: 100%">
           <div class="form-help">源路径相对于分享顶层目录。每个子目录可单独设置季数和新目录名；开启统一第一季时，季数和季目录统一为 S01。合并时默认只使用季数；开启按季创建目录后仍创建 Season 目录。001-090 等集数范围不会被误判为季数。</div>
           <div v-for="(rule, index) in form.season_folders" :key="index" class="season-rule">
-            <el-input v-model="rule.source" placeholder="源子目录，如 第一季 或 001-090" aria-label="源子目录" />
+            <el-select v-if="form.episode_mapping || rule.match_type === 'filename'" v-model="rule.match_type" aria-label="匹配方式" style="width: 145px" @change="rule.source = ''">
+              <el-option label="来源目录" value="directory" />
+              <el-option label="文件名通配符" value="filename" :disabled="!form.episode_mapping" />
+            </el-select>
+            <el-input v-model="rule.source" :placeholder="rule.match_type === 'filename' ? '例如 S03E*' : '源子目录，如 第一季 或 001-090'" :aria-label="rule.match_type === 'filename' ? '匹配文件名' : '源子目录'" />
+            <el-checkbox v-if="rule.match_type === 'filename'" v-model="rule.top_only">仅匹配分享顶层文件</el-checkbox>
+            <div v-if="rule.match_type === 'filename'" class="form-help" style="flex-basis: 100%">* 匹配任意字符，? 匹配单个字符，不区分大小写。默认不处理子目录中的文件；此类规则只有开启季集映射才生效，多条文件名规则同时命中会提示并跳过。</div>
             <span v-if="form.episode_mapping">目标季数</span>
             <el-input-number v-model="rule.season" :min="1" :max="999" :precision="0" aria-label="对应季数" />
             <el-input v-model="rule.name" :placeholder="`Season ${String(rule.season).padStart(2, '0')}`" aria-label="新目录名称" />
             <template v-if="form.episode_mapping">
               <span>集数偏移</span>
               <el-input-number v-model="rule.episode_offset" :min="-9998" :max="9998" :precision="0" aria-label="集数偏移" />
-              <div class="form-help" style="flex-basis: 100%">{{ rule.source || '源目录' }}/01.mp4 → S{{ String(form.force_first_season ? 1 : rule.season).padStart(2, '0') }}E{{ String(1 + (rule.episode_offset || 0)).padStart(2, '0') }}；26.mp4 → E{{ 26 + (rule.episode_offset || 0) }}。已转存记忆保留，不会自动改动历史文件。</div>
+              <div class="form-help" style="flex-basis: 100%">{{ rule.source || '匹配来源' }}{{ rule.match_type === 'filename' ? '（原集数 01）' : '/01.mp4' }} → S{{ String(form.force_first_season ? 1 : rule.season).padStart(2, '0') }}E{{ String(1 + (rule.episode_offset || 0)).padStart(2, '0') }}；原集数 26 → E{{ 26 + (rule.episode_offset || 0) }}。已转存记忆保留，不会自动改动历史文件。</div>
             </template>
             <el-button type="danger" text @click="form.season_folders.splice(index, 1)">删除</el-button>
           </div>
-          <el-button size="small" @click="form.season_folders.push({ source: '', season: 1, name: '', episode_offset: 0 })">添加子目录规则</el-button>
+          <el-button size="small" @click="form.season_folders.push({ source: '', season: 1, name: '', episode_offset: 0, match_type: 'directory', top_only: true })">添加子目录规则</el-button>
+          <el-button v-if="form.episode_mapping" size="small" @click="form.season_folders.push({ source: '', season: 1, name: 'Season 01', episode_offset: 0, match_type: 'filename', top_only: true })">添加文件名规则</el-button>
         </div>
       </el-form-item>
       
@@ -261,7 +268,7 @@ const form = reactive({
   episode_mapping: false,
   season_directories: false,
   tmdb: null as { id: number; media_type: string; title: string; year: string } | null,
-  season_folders: [] as { source: string; season: number; name: string; episode_offset?: number }[]
+  season_folders: [] as { source: string; season: number; name: string; episode_offset?: number; match_type?: 'directory' | 'filename'; top_only?: boolean }[]
 })
 
 // 高级设置折叠面板状态
@@ -459,7 +466,7 @@ const loadTaskData = (task: Task) => {
   form.episode_mapping = task.episode_mapping ?? false
   form.season_directories = task.season_directories ?? false
   form.tmdb = task.tmdb ? { ...task.tmdb } : null
-  form.season_folders = (task.season_folders || []).map(rule => ({ ...rule, episode_offset: rule.episode_offset ?? 0 }))
+  form.season_folders = (task.season_folders || []).map(rule => ({ ...rule, episode_offset: rule.episode_offset ?? 0, match_type: rule.match_type ?? 'directory', top_only: rule.top_only ?? true }))
   
   // 编辑任务时禁用同步开关，避免意外修改路径
   pathNameSync.value = false
@@ -600,7 +607,8 @@ watch(pathNameSync, (newValue) => {
 .add-task-dialog .path-input-group, .add-task-dialog .cron-input-group { width: 100%; display: flex; align-items: center; gap: 10px; }
 .add-task-dialog .path-select, .add-task-dialog .cron-select { flex: 1; min-width: 0; }
 .add-task-dialog .dialog-footer { display: flex; justify-content: flex-end; gap: 12px; }
-.add-task-dialog .season-rule { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+.add-task-dialog .season-rule { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; padding: 12px; background: #fff; border: 1px solid #b9cadb; border-radius: 10px; color: #18354d; }
+.add-task-dialog .season-rule .form-help { color: #29465e; }
 .add-task-dialog .season-rule > .el-input { flex: 1; min-width: 150px; }
 @media (max-width: 640px) {
   .add-task-dialog { width: calc(100vw - 24px) !important; margin: 12px auto !important; }

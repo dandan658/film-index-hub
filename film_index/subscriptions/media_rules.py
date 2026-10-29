@@ -1,5 +1,6 @@
 """Pure naming rules shared by task validation and the transfer planner."""
 import posixpath
+import fnmatch
 import re
 import unicodedata
 
@@ -40,21 +41,32 @@ def task_options(data, previous=None):
         if not isinstance(rule, dict):
             raise ValueError('分季目录规则格式不正确')
         source = str(rule.get('source', '')).strip().strip('/')
+        match_type = rule.get('match_type', 'directory')
+        if match_type not in ('directory', 'filename'):
+            raise ValueError('规则匹配类型必须为目录或文件名')
+        identity = (match_type, source.casefold() if match_type == 'filename' else source)
         season = rule.get('season', 1)
-        if not source or '\\' in source or any(p in ('', '.', '..') for p in source.split('/')) or source in seen:
+        if not source or '\\' in source or any(p in ('', '.', '..') for p in source.split('/')) or identity in seen:
             raise ValueError('源子目录必须填写不重复的相对路径，不能包含路径跳转')
+        if match_type == 'filename' and ('/' in source or len(source) > 200 or '[' in source or ']' in source):
+            raise ValueError('文件名规则只支持文件名及 *、? 通配符，不含目录，最多 200 字符')
         if isinstance(season, bool) or not isinstance(season, int) or not 1 <= season <= 999:
             raise ValueError('每个子目录的季数必须为 1 至 999 的整数')
         name = str(rule.get('name', '')).strip() or f'Season {season:02d}'
         if safe_name(name) != name:
             raise ValueError('新季目录名不能包含斜杠、特殊字符或路径跳转')
         rules.append({'source': source, 'season': season, 'name': name})
+        if match_type == 'filename':
+            top_only = rule.get('top_only', True)
+            if not isinstance(top_only, bool):
+                raise ValueError('仅匹配顶层必须为布尔值')
+            rules[-1].update(match_type='filename', top_only=top_only)
         if 'episode_offset' in rule:
             offset = rule['episode_offset']
             if isinstance(offset, bool) or not isinstance(offset, int) or not -9998 <= offset <= 9998:
                 raise ValueError('集数偏移必须为 -9998 至 9998 的整数')
             rules[-1]['episode_offset'] = offset
-        seen.add(source)
+        seen.add(identity)
     result['season_folders'] = rules
     metadata = result['tmdb']
     if metadata is not None:
@@ -179,12 +191,27 @@ def destination_name(path, task, source_path=None):
     mapped_parent = posixpath.dirname(path)
     matched_rule = None
     for rule in sorted(task.get('season_folders', []), key=lambda r: len(r['source']), reverse=True):
+        if rule.get('match_type') == 'filename':
+            continue
         prefix = rule['source'].strip('/')
         if path.startswith(prefix + '/'):
             season = rule['season']
             mapped_parent = posixpath.dirname(posixpath.join(rule.get('name') or f'Season {season:02d}', path[len(prefix) + 1:]))
             matched_rule = rule
             break
+    if task.get('episode_mapping'):
+        # Match the original basename, never a regex-renamed destination.
+        # Filename rules are explicit overrides; top-level scope is the default.
+        matches = [rule for rule in task.get('season_folders', [])
+                   if rule.get('match_type') == 'filename'
+                   and (not rule.get('top_only', True) or not posixpath.dirname(path))
+                   and fnmatch.fnmatchcase(posixpath.basename(path).casefold(), rule['source'].casefold())]
+        if len(matches) > 1:
+            return False, path, f'多个文件名映射规则同时匹配，已跳过：{path}'
+        if matches:
+            matched_rule = matches[0]
+            season = matched_rule['season']
+            mapped_parent = posixpath.join(matched_rule.get('name') or f'Season {season:02d}', posixpath.dirname(path))
     detected_directory = directory_season(source_path or path) if task.get('media_type') == 'tv' else None
     if detected_directory and not matched_rule:
         season = detected_directory[1]
@@ -204,7 +231,7 @@ def destination_name(path, task, source_path=None):
         parts = mapped_parent.split('/')
         parts = [part for part in parts if season_in_folder(part) is None]
         mapped_parent = posixpath.join('Season 01', *[part for part in parts if part])
-        if matched_rule:
+        if matched_rule and matched_rule.get('match_type') != 'filename':
             original = posixpath.dirname(path[len(matched_rule['source'].strip('/')) + 1:])
             mapped_parent = posixpath.join('Season 01', *[part for part in original.split('/') if part and season_in_folder(part) is None])
     renamed = posixpath.join(mapped_parent, posixpath.basename(renamed))
