@@ -167,6 +167,8 @@ def directory_season(path):
 
 def episode(path, default_season=1):
     stem = posixpath.splitext(posixpath.basename(path))[0]
+    # Split releases such as 104（上）/104（下） retain one episode number.
+    stem = re.sub(r'\s*\((?:上|下)\)\s*$', '', unicodedata.normalize('NFKC', stem))
     parent = directory_season(path)
     season = parent[1] if parent else (season_in_folder(stem) or default_season)
     match = re.search(r'(?i)(?<![a-z0-9])S(\d{1,3})[ ._-]*E(\d{1,4})(?!\d)', stem)
@@ -276,6 +278,9 @@ def destination_name(path, task, source_path=None):
             if task.get('season_directories'):
                 mapped_parent = f'Season {season:02d}'
             filename = f'{title} - S{season:02d}E{number:02d}'
+            part = re.search(r'\((上|下)\)\s*$', unicodedata.normalize('NFKC', posixpath.splitext(posixpath.basename(path))[0]))
+            if part:
+                filename += ' - part' + ('1' if part[1] == '上' else '2')
         else:
             filename = title
         # Preserve subtitle language / forced markers so sidecars stay distinct.

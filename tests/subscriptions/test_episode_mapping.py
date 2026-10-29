@@ -13,6 +13,14 @@ def task(**changes):
 
 
 class EpisodeMappingTests(unittest.TestCase):
+    def test_split_episode_parts_are_distinct_without_changing_number(self):
+        for tag, part in [('上', 1), ('下', 2)]:
+            included, name, warning = destination_name(f'第二季/104（{tag}）.mkv', task(force_first_season=True))
+            self.assertTrue(included)
+            self.assertFalse(warning)
+            self.assertEqual(name, f'百炼成神 - S01E104 - part{part}.mkv')
+        self.assertFalse(destination_name('2160（上）.mkv', task())[0])
+
     def filename_task(self, **changes):
         return task(season_folders=[dict(source='S03E*', match_type='filename',
                                         top_only=True, season=1, name='Season 01', episode_offset=104)], **changes)
