@@ -9,12 +9,13 @@ export interface ApiResponse<T = any> {
 
 // 任务相关类型
 export interface Task {
-  season_folders?: { source: string; season: number; name: string }[]
+  season_folders?: { source: string; season: number; name: string; episode_offset?: number }[]
   media_type?: 'other' | 'movie' | 'tv'
   flatten?: boolean
   auto_rename?: boolean
   season?: number
   force_first_season?: boolean
+  episode_mapping?: boolean
   tmdb_auto_season?: boolean
   season_directories?: boolean
   tmdb?: { id: number; media_type: string; title: string; year: string } | null
@@ -45,12 +46,13 @@ export interface ShareInfo {
 }
 
 export interface CreateTaskRequest {
-  season_folders?: { source: string; season: number; name: string }[]
+  season_folders?: { source: string; season: number; name: string; episode_offset?: number }[]
   media_type?: 'other' | 'movie' | 'tv'
   flatten?: boolean
   auto_rename?: boolean
   season?: number
   force_first_season?: boolean
+  episode_mapping?: boolean
   tmdb_auto_season?: boolean
   season_directories?: boolean
   tmdb?: { id: number; media_type: string; title: string; year: string } | null
@@ -65,12 +67,13 @@ export interface CreateTaskRequest {
 }
 
 export interface UpdateTaskRequest {
-  season_folders?: { source: string; season: number; name: string }[]
+  season_folders?: { source: string; season: number; name: string; episode_offset?: number }[]
   media_type?: 'other' | 'movie' | 'tv'
   flatten?: boolean
   auto_rename?: boolean
   season?: number
   force_first_season?: boolean
+  episode_mapping?: boolean
   tmdb_auto_season?: boolean
   season_directories?: boolean
   tmdb?: { id: number; media_type: string; title: string; year: string } | null

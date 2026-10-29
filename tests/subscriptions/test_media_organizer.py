@@ -142,6 +142,22 @@ class FakeStorage:
 
 
 class TransferTests(unittest.TestCase):
+    def test_opt_in_episode_mapping_blocks_duplicates_before_transfer(self):
+        self.files[0]['path'] = '分享/第一季/01.mp4'
+        self.files[1]['path'] = '分享/第三季/01.mp4'
+        task = tv(episode_mapping=True, season_folders=[
+            {'source': '第一季', 'season': 1, 'episode_offset': 0},
+            {'source': '第三季', 'season': 1, 'episode_offset': 0}])
+        with self.assertRaisesRegex(ValueError, '映射产生重号'):
+            self.run_transfer(task)
+        self.assertFalse(self.storage.transfers)
+        task['season_folders'][1]['episode_offset'] = 104
+        # Remove the third fixture, which already has episode 105.
+        self.files.pop()
+        self.assertTrue(self.run_transfer(task)['success'])
+        self.assertEqual(set(self.storage.files), {'/剧集/牧神记 - S01E01.mp4', '/剧集/牧神记 - S01E105.mp4'})
+        self.assertTrue(self.run_transfer(task)['skipped'])
+
     def test_multi_season_subscription_same_episode_names_remain_distinct(self):
         for source, folder in zip(self.files, ('剧名第一季', '剧名第二季', '剧名第三季')):
             source['path'] = f'合集/{folder}/S01E01.mp4'

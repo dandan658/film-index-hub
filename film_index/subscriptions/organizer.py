@@ -101,6 +101,12 @@ def transfer_organized(storage, client, files, roots, share_url, save_dir, task,
         suffix = hashlib.sha256(source_id.encode()).hexdigest()[:10]
         planned.append({'source': source, 'id': source_id, 'relative': relative,
                         'desired': posixpath.join(root, destination), 'suffix': suffix})
+    if task.get('episode_mapping'):
+        targets = {}
+        for item in planned:
+            if item['desired'] in targets:
+                raise ValueError(f'目录集数映射产生重号，请检查偏移规则：{targets[item["desired"]]} 与 {item["relative"]} → {item["desired"]}')
+            targets[item['desired']] = item['relative']
     if not planned:
         if warnings:
             return {'success': False, 'error': '\n'.join(warnings), 'transferred_files': []}

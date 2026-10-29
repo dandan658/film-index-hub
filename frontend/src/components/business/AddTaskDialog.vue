@@ -42,7 +42,7 @@
         <div class="form-help">合并其他子目录后仍按季保存：影片目录/Season 01/文件。目录和文件名使用同一季数。</div>
       </el-form-item>
       <el-form-item label="自动重命名">
-        <el-switch v-model="form.auto_rename" :disabled="form.media_type === 'other' || form.tmdb_auto_season || form.season_directories" />
+        <el-switch v-model="form.auto_rename" :disabled="form.media_type === 'other' || form.tmdb_auto_season || form.season_directories || form.episode_mapping" />
         <div class="form-help">根据自定义任务名称整理视频和字幕；无法识别集数会提示并跳过，不会按 4K 等画质数字误命名。</div>
       </el-form-item>
       <el-form-item v-if="form.media_type === 'tv'" label="TMDB 自动分季">
@@ -52,6 +52,10 @@
       <el-form-item v-if="form.media_type === 'tv'" label="统一第一季">
         <el-switch v-model="form.force_first_season" @change="onForceFirstSeasonChange" />
         <div class="form-help">开启：整个订阅统一使用第一季 S01，覆盖目录、文件名和手动规则中的季数。关闭：自动识别目录和文件名的季数。集数仍按原文件识别；同名文件自动区分，不覆盖。</div>
+      </el-form-item>
+      <el-form-item v-if="form.media_type === 'tv'" label="目录集数映射">
+        <el-switch v-model="form.episode_mapping" @change="value => { if (value) form.auto_rename = true }" />
+        <div class="form-help">默认关闭，不影响普通订阅。仅对下方明确匹配的目录使用目标季数和集数偏移；不会按文件数量猜测。例：第三季第 1 集 +104 → S01E105。TMDB 自动分季开启时仍校验映射后的范围。</div>
       </el-form-item>
       <el-form-item v-if="form.media_type === 'tv' && form.auto_rename && !form.force_first_season && !form.tmdb_auto_season" label="多季识别">
         <div class="form-help">自动识别各级目录中的第一季、第二季、第三季、Season 02、S03 等。优先使用手动目录规则，其次使用最近的季目录，再使用文件名中的 Sxx，最后才使用下方默认季数。目录中的季数会修正文件名里错误的 S01。</div>
@@ -76,9 +80,14 @@
             <el-input v-model="rule.source" placeholder="源子目录，如 第一季 或 001-090" aria-label="源子目录" />
             <el-input-number v-model="rule.season" :min="1" :max="999" :precision="0" aria-label="对应季数" />
             <el-input v-model="rule.name" :placeholder="`Season ${String(rule.season).padStart(2, '0')}`" aria-label="新目录名称" />
+            <template v-if="form.episode_mapping">
+              <span>集数偏移</span>
+              <el-input-number v-model="rule.episode_offset" :min="-9998" :max="9998" :precision="0" aria-label="集数偏移" />
+              <div class="form-help" style="flex-basis: 100%">{{ rule.source || '源目录' }}/01.mp4 → S{{ String(form.force_first_season ? 1 : rule.season).padStart(2, '0') }}E{{ String(1 + (rule.episode_offset || 0)).padStart(2, '0') }}；26.mp4 → E{{ 26 + (rule.episode_offset || 0) }}。已转存记忆保留，不会自动改动历史文件。</div>
+            </template>
             <el-button type="danger" text @click="form.season_folders.splice(index, 1)">删除</el-button>
           </div>
-          <el-button size="small" @click="form.season_folders.push({ source: '', season: 1, name: '' })">添加子目录规则</el-button>
+          <el-button size="small" @click="form.season_folders.push({ source: '', season: 1, name: '', episode_offset: 0 })">添加子目录规则</el-button>
         </div>
       </el-form-item>
       
@@ -243,9 +252,10 @@ const form = reactive({
   season: 1,
   force_first_season: false,
   tmdb_auto_season: false,
+  episode_mapping: false,
   season_directories: false,
   tmdb: null as { id: number; media_type: string; title: string; year: string } | null,
-  season_folders: [] as { source: string; season: number; name: string }[]
+  season_folders: [] as { source: string; season: number; name: string; episode_offset?: number }[]
 })
 
 // 高级设置折叠面板状态
@@ -290,6 +300,7 @@ const resetForm = () => {
   form.season = 1
   form.force_first_season = false
   form.tmdb_auto_season = false
+  form.episode_mapping = false
   form.season_directories = false
   form.tmdb = null
   form.season_folders = []
@@ -439,9 +450,10 @@ const loadTaskData = (task: Task) => {
   form.season = task.season || 1
   form.force_first_season = task.force_first_season ?? false
   form.tmdb_auto_season = task.tmdb_auto_season ?? false
+  form.episode_mapping = task.episode_mapping ?? false
   form.season_directories = task.season_directories ?? false
   form.tmdb = task.tmdb ? { ...task.tmdb } : null
-  form.season_folders = (task.season_folders || []).map(rule => ({ ...rule }))
+  form.season_folders = (task.season_folders || []).map(rule => ({ ...rule, episode_offset: rule.episode_offset ?? 0 }))
   
   // 编辑任务时禁用同步开关，避免意外修改路径
   pathNameSync.value = false
@@ -477,6 +489,10 @@ const handleSubmit = async () => {
   if (!valid) return
   if (form.auto_rename && !form.name.trim()) {
     ElMessage.warning('自动重命名需要填写自定义任务名称')
+    return
+  }
+  if (form.episode_mapping && (!form.auto_rename || !form.season_folders.length)) {
+    ElMessage.warning('目录集数映射需要自动命名和至少一条目录规则')
     return
   }
 
@@ -549,7 +565,7 @@ watch(() => form.url, (value) => {
 watch(() => form.media_type, (value) => {
   if (form.tmdb && form.tmdb.media_type !== value) form.tmdb = null
   if (value === 'other') form.auto_rename = false
-  if (value !== 'tv') { form.season_folders = []; form.tmdb_auto_season = false; form.season_directories = false; form.force_first_season = false }
+  if (value !== 'tv') { form.season_folders = []; form.episode_mapping = false; form.tmdb_auto_season = false; form.season_directories = false; form.force_first_season = false }
 })
 watch(() => form.name, (newName) => {
   if (pathNameSync.value && newName) {

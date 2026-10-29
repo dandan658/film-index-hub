@@ -528,6 +528,7 @@
   "tests/create_legacy_fixture.py",
   "tests/subscriptions/test_backend_accounts.py",
   "tests/subscriptions/test_backend_accounts_api.py",
+  "tests/subscriptions/test_episode_mapping.py",
   "tests/subscriptions/test_media_organizer.py",
   "tests/subscriptions/test_media_tmdb_runtime.py",
   "tests/subscriptions/test_pan_accounts.py",

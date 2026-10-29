@@ -22,10 +22,10 @@ def replacement(value):
 def task_options(data, previous=None):
     previous = previous or {}
     result = {key: data.get(key, previous.get(key, default)) for key, default in (
-        ('media_type', 'other'), ('flatten', False), ('auto_rename', False), ('season', 1), ('season_folders', []), ('force_first_season', False), ('tmdb_auto_season', False), ('season_directories', False), ('tmdb', None))}
+        ('media_type', 'other'), ('flatten', False), ('auto_rename', False), ('season', 1), ('season_folders', []), ('force_first_season', False), ('tmdb_auto_season', False), ('season_directories', False), ('episode_mapping', False), ('tmdb', None))}
     if result['media_type'] not in ('other', 'movie', 'tv'):
         raise ValueError('资源类型必须为普通文件、电影或电视剧')
-    for key in ('flatten', 'auto_rename', 'force_first_season', 'tmdb_auto_season', 'season_directories'):
+    for key in ('flatten', 'auto_rename', 'force_first_season', 'tmdb_auto_season', 'season_directories', 'episode_mapping'):
         if not isinstance(result[key], bool):
             raise ValueError(f'{key} 必须为布尔值')
     if isinstance(result['season'], bool) or not isinstance(result['season'], int) or not 1 <= result['season'] <= 999:
@@ -49,6 +49,11 @@ def task_options(data, previous=None):
         if safe_name(name) != name:
             raise ValueError('新季目录名不能包含斜杠、特殊字符或路径跳转')
         rules.append({'source': source, 'season': season, 'name': name})
+        if 'episode_offset' in rule:
+            offset = rule['episode_offset']
+            if isinstance(offset, bool) or not isinstance(offset, int) or not -9998 <= offset <= 9998:
+                raise ValueError('集数偏移必须为 -9998 至 9998 的整数')
+            rules[-1]['episode_offset'] = offset
         seen.add(source)
     result['season_folders'] = rules
     metadata = result['tmdb']
@@ -63,6 +68,8 @@ def task_options(data, previous=None):
                           'title': safe_name(metadata['title'][:200]), 'year': str(metadata.get('year', ''))[:4]}
     if rules and result['media_type'] != 'tv':
         raise ValueError('分季目录规则只适用于电视剧')
+    if result['episode_mapping'] and (result['media_type'] != 'tv' or not result['auto_rename'] or not rules):
+        raise ValueError('目录集数映射需要选择电视剧、开启自动命名并配置目录规则')
     pattern = data.get('regex_pattern', previous.get('regex_pattern', '')) or ''
     replace = data.get('regex_replace', previous.get('regex_replace', '')) or ''
     if pattern:
@@ -211,6 +218,13 @@ def destination_name(path, task, source_path=None):
             if parsed is None:
                 return False, path, f'无法识别集数，跳过并保留源文件：{path}'
             detected_season, number = parsed
+            # Opt-in only: a source directory can map split releases to TMDB's
+            # continuous numbering. Never infer offsets from file counts.
+            mapped_episode = task.get('episode_mapping', False) and matched_rule is not None
+            if mapped_episode:
+                number += matched_rule.get('episode_offset', 0)
+                if not 1 <= number <= 9999:
+                    return False, path, f'映射后集数必须为 1 至 9999，已跳过：{path}'
             # An explicit per-directory rule takes precedence over filename tags.
             season = season if force_first or matched_rule or detected_directory else detected_season
             if task.get('tmdb_auto_season'):
@@ -218,7 +232,9 @@ def destination_name(path, task, source_path=None):
                 stem = posixpath.splitext(posixpath.basename(path))[0]
                 explicit = re.search(r'(?i)(?<![a-z0-9])S(\d{1,3})[ ._-]*E\d{1,4}(?!\d)', stem)
                 filename_season = int(explicit[1]) if explicit else season_in_folder(stem)
-                evidence = [value for value in (matched_rule['season'] if matched_rule else None, detected_directory[1] if detected_directory else None, filename_season) if value is not None]
+                # A confirmed mapping deliberately overrides source season tags;
+                # TMDB still validates the resulting target season and episode.
+                evidence = ([season] if mapped_episode else [value for value in (matched_rule['season'] if matched_rule else None, detected_directory[1] if detected_directory else None, filename_season) if value is not None])
                 if len(set(evidence)) > 1:
                     return False, path, f'季数信息冲突，待确认并跳过：{path}'
                 if evidence:
