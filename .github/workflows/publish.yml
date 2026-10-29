@@ -46,5 +46,12 @@ jobs:
       - name: Publish the single verified image
         run: |
           docker tag ghcr.io/dandan658/film-index-hub:latest ghcr.io/dandan658/film-index-hub:3.0.11
-          docker push ghcr.io/dandan658/film-index-hub:3.0.11
-          docker push ghcr.io/dandan658/film-index-hub:latest
+          push_image() {
+            for attempt in 1 2 3; do
+              if docker push "$1"; then return 0; fi
+              if [ "$attempt" -eq 3 ]; then return 1; fi
+              sleep 10
+            done
+          }
+          push_image ghcr.io/dandan658/film-index-hub:3.0.11
+          push_image ghcr.io/dandan658/film-index-hub:latest

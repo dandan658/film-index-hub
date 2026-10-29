@@ -67,7 +67,12 @@
       <el-form-item v-if="form.auto_rename" label="命名示例">
         <div class="form-help">
           <template v-if="form.media_type === 'tv'">
-            <div v-for="(label, index) in ['第一季', '第二季', '第三季']" :key="label">{{ label }}/01.mp4 → {{ form.name || '自定义名称' }} - S{{ String(form.force_first_season ? 1 : index + 1).padStart(2, '0') }}E01.mp4</div>
+            <template v-if="form.episode_mapping">
+              <div>启用映射后，以各目录规则下的预览为准；未匹配的目录仍按原规则识别。</div>
+            </template>
+            <template v-else>
+              <div v-for="(label, index) in ['第一季', '第二季', '第三季']" :key="label">{{ label }}/01.mp4 → {{ form.name || '自定义名称' }} - S{{ String(form.force_first_season ? 1 : index + 1).padStart(2, '0') }}E01.mp4</div>
+            </template>
           </template>
           <div v-else>{{ form.name || '自定义名称' }}.mp4</div>
           保留视频原格式；字幕保留语言后缀；同名冲突自动区分，不覆盖文件。
@@ -78,6 +83,7 @@
           <div class="form-help">源路径相对于分享顶层目录。每个子目录可单独设置季数和新目录名；开启统一第一季时，季数和季目录统一为 S01。合并时默认只使用季数；开启按季创建目录后仍创建 Season 目录。001-090 等集数范围不会被误判为季数。</div>
           <div v-for="(rule, index) in form.season_folders" :key="index" class="season-rule">
             <el-input v-model="rule.source" placeholder="源子目录，如 第一季 或 001-090" aria-label="源子目录" />
+            <span v-if="form.episode_mapping">目标季数</span>
             <el-input-number v-model="rule.season" :min="1" :max="999" :precision="0" aria-label="对应季数" />
             <el-input v-model="rule.name" :placeholder="`Season ${String(rule.season).padStart(2, '0')}`" aria-label="新目录名称" />
             <template v-if="form.episode_mapping">
