@@ -1,17 +1,17 @@
-name: Build and verify the single Film Index application
+name: Build and verify Film Index ARM64 for 1Panel
 on:
   push:
-    branches: [main]
+    branches: [arm64-installer-3.0.13]
   workflow_dispatch:
 permissions:
   contents: read
   packages: write
 concurrency:
-  group: unified-release
+  group: installer-arm64-release
   cancel-in-progress: true
 jobs:
   publish:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -45,7 +45,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish the single verified image
         run: |
-          docker tag ghcr.io/dandan658/film-index-hub:latest ghcr.io/dandan658/film-index-hub:3.0.13
+          docker tag ghcr.io/dandan658/film-index-hub:latest ghcr.io/dandan658/film-index-hub:3.0.13-arm64
           push_image() {
             for attempt in 1 2 3; do
               if docker push "$1"; then return 0; fi
@@ -53,5 +53,5 @@ jobs:
               sleep 10
             done
           }
-          push_image ghcr.io/dandan658/film-index-hub:3.0.13
-          push_image ghcr.io/dandan658/film-index-hub:latest
+          push_image ghcr.io/dandan658/film-index-hub:3.0.13-arm64
+

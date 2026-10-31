@@ -18,8 +18,8 @@ ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 TZ=Asia/Shanghai FILM_INDEX_DAT
 WORKDIR /opt/film-index
 RUN apt-get update && apt-get install -y --no-install-recommends tzdata ca-certificates curl ffmpeg rclone chromium chromium-driver \
     && rm -rf /var/lib/apt/lists/*
-RUN curl -fsSL --retry 3 https://github.com/minio/mc/releases/download/RELEASE.2025-08-13T08-35-41Z/mc.linux-amd64.RELEASE.2025-08-13T08-35-41Z -o /usr/local/bin/mc \
-    && echo '01f866e9c5f9b87c2b09116fa5d7c06695b106242d829a8bb32990c00312e891  /usr/local/bin/mc' | sha256sum -c - \
+RUN curl -fsSL --retry 3 https://github.com/minio/mc/releases/download/RELEASE.2025-08-13T08-35-41Z/mc.linux-arm64.RELEASE.2025-08-13T08-35-41Z -o /usr/local/bin/mc \
+    && echo '14c8c9616cfce4636add161304353244e8de383b2e2752c0e9dad01d4c27c12c  /usr/local/bin/mc' | sha256sum -c - \
     && chmod +x /usr/local/bin/mc \
     && mkdir -p /app && ln -s /data/media /config && ln -s /data/config /app/config && ln -s /data/log /app/log
 COPY requirements.txt ./
